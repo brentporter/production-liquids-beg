@@ -10,6 +10,10 @@ import 'vuetify/styles'
 import VueApexCharts from "vue3-apexcharts";
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
+import { defineCustomElements as defineCalciteElements } from "@esri/calcite-components/dist/loader";
+// define custom elements in the browser, and load the assets from the CDN
+defineCalciteElements(window, { resourcesUrl: 'https://js.arcgis.com/calcite-components/2.8.6/assets' });
+
 
 const app = createApp(App)
 const vuetify = createVuetify({

@@ -97,10 +97,10 @@ onMounted(()=>{
     view: begView,
     viewpoint: new Viewpoint({
       center: new Point({
-        longitude: -99.75,
+        longitude: -98,
         latitude: 30.75
       }),
-      scale: 10000000 // Adjust scale as needed
+      zoom:5 // Adjust scale as needed
     })
   })
 
@@ -112,7 +112,7 @@ onMounted(()=>{
   let bkExpand = new Expand({
     view: begView,
     content: legend,
-    expanded: false,
+    expanded: true,
     expandTooltip: 'Show Legend'
   });
 
@@ -138,7 +138,6 @@ onMounted(()=>{
 .mapdiv {
   height:100vh;
   width:100vw;
-  z-index: 5000;
 }
 .esri-attribution {
   display: none !important;
