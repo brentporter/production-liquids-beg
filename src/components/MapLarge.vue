@@ -30,8 +30,9 @@ import {Point} from "@arcgis/core/geometry.js";
 import Home from "@arcgis/core/widgets/Home.js";
 import Legend from "@arcgis/core/widgets/Legend.js";
 import Expand from "@arcgis/core/widgets/Expand.js";
+import FeatureLayer from "@arcgis/core/layers/FeatureLayer.js";
 const isInitializing = ref(true)
-let begMap,begView;
+let begMap,begView,countyBoundariesTx;
 
 const mapStore = useMapStore()
 
@@ -116,6 +117,16 @@ onMounted(()=>{
   });
 
   begView.ui.add(bkExpand, "bottom-left");
+
+  countyBoundariesTx = new FeatureLayer({
+    //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Well_Production/FeatureServer/0',
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Tx_Well_Production/FeatureServer/0',
+    setAutoGeneralize: true,
+    outFields: ["*"],
+    opacity:0.95,
+    id: "countyBoundariesTx",
+  })
+  begMap.add(countyBoundariesTx)
 
 })
 </script>
