@@ -10,7 +10,7 @@
   font-weight: normal;
 }
 #mapViewer canvas{
-  border-radius: 10px !important;
+ /* border-radius: 10px !important;*/
 }
 .esri-attribution__sources{
   border-radius: 10px !important;

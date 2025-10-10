@@ -102,9 +102,23 @@ const sidebarOpen = ref(true)
   cursor: pointer;
   z-index: 20;
 }
+.esri-ui-top-left {
+  top: 3.75rem !important;
+  left: 0.25rem !important;
+}
 
+@media (max-width: 480px) {
+  .esri-ui-top-left {
+    top: 2.8rem !important;
+    left: 0.125rem !important;
+  }
+}
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  .esri-ui-top-left {
+    top: 3.125rem !important;
+    left: 0.125rem !important;
+  }
   .sidebar {
     position: absolute;
     height: 100%;
@@ -129,6 +143,10 @@ const sidebarOpen = ref(true)
 }
 
 @media (max-width: 480px) {
+  .esri-ui-top-left {
+    top: 2.8rem !important;
+    left: 0.125rem !important;
+  }
   .sidebar {
     width: 100%;
   }
