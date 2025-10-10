@@ -32,9 +32,10 @@ import Legend from "@arcgis/core/widgets/Legend.js";
 import Expand from "@arcgis/core/widgets/Expand.js";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer.js";
 const isInitializing = ref(true)
-let begMap,begView,countyBoundariesTx;
+let begMap,begView,countyBoundariesTx,
+    countiesHFTx,countiesInjectionTx,layerMap;
 
-const mapStore = useMapStore()
+const mapStore = useMapStore();
 
 // Watch for changes to trigger map updates
 watch(
@@ -44,14 +45,28 @@ watch(
       () => mapStore.selectedProduction,
       () => mapStore.selectedInjection
     ],
-    () => {
-      // Map update logic would go here
-      console.log('Map settings changed:', {
-        focus: mapStore.mapFocus,
-        mode: mapStore.dataMode,
-        production: mapStore.selectedProduction,
-        injection: mapStore.selectedInjection
-      })
+    ([newFocus, newMode, newProduction, newInjection], [oldFocus, oldMode, oldProduction, oldInjection]) => {
+      // Handle mapFocus changes
+      if (newFocus !== oldFocus) {
+        // Zoom/pan to new focus area
+      }
+
+      // Handle layer visibility - toggle between Gas Production, HF_Fluid, and Injection
+      if (newMode !== oldMode || newProduction !== oldProduction || newInjection !== oldInjection) {
+        // Remove all layers first
+        begMap.remove(layerMap['countyBoundariesTx'])
+        begMap.remove(layerMap['countiesHFTx'])
+        begMap.remove(layerMap['countiesInjectionTx'])
+
+        // Add the correct layer based on current selections
+        if (newMode === 'production' && newProduction === 'Gas') {
+          begMap.add(layerMap['countyBoundariesTx'])
+        } else if (newMode === 'injection' && newInjection === 'HF Fluid') {
+          begMap.add(layerMap['countiesHFTx'])
+        } else if (newMode === 'injection' && newInjection === 'Salt Water Disposal') {
+          begMap.add(layerMap['countiesInjectionTx'])
+        }
+      }
     }
 )
 
@@ -123,9 +138,31 @@ onMounted(()=>{
     url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Tx_Well_Production/FeatureServer/0',
     setAutoGeneralize: true,
     outFields: ["*"],
-    opacity:0.95,
+    opacity:0.75,
     id: "countyBoundariesTx",
   })
+
+  countiesHFTx = new FeatureLayer({
+    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_HF_Fluid/FeatureServer/0',
+    opacity:0.75,
+    setAutoGeneralize: true,
+    outFields: ["*"],
+    id: "countiesHFTx",
+  })
+
+  countiesInjectionTx = new FeatureLayer({
+    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Injection_Info/FeatureServer/0',
+    opacity:0.75,
+    setAutoGeneralize:true,
+    outFields:["*"],
+    id:"countiesInjectionTx",
+  })
+
+  layerMap = {
+    'countyBoundariesTx': countyBoundariesTx,
+    'countiesHFTx': countiesHFTx,
+    'countiesInjectionTx': countiesInjectionTx
+  };
   begMap.add(countyBoundariesTx)
 
 })

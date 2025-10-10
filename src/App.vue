@@ -107,6 +107,11 @@ const sidebarOpen = ref(true)
   left: 0.25rem !important;
 }
 
+.esri-ui-bottom-left {
+  bottom: 3.75rem !important;
+  left: 0.25rem !important;
+}
+
 @media (max-width: 480px) {
   .esri-ui-top-left {
     top: 2.8rem !important;
