@@ -1,7 +1,12 @@
 import axios from "axios";
-import {allCountiesProductionData,allCountiesInjectionData,allCountiesHFData} from '@/composables/secret.js'
+import {
+    allCountiesProductionData,
+    allCountiesInjectionData,
+    allCountiesHFData,
+} from '@/composables/secret.js'
 
 export let problematicCounties = {};
+
 export async function masterDataLoader(){
 let output = await gatherDataProduction(allCountiesProductionData)
     return aggregateByCounty(output)

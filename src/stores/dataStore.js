@@ -4,8 +4,7 @@ import { ref, computed } from 'vue'
 import {
     allCountiesProductionData,
     allCountiesInjectionData,
-    allCountiesHFData,
-    allTexasProductionData
+    allCountiesHFData
 } from '@/composables/secret'
 import {
     masterDataLoader,
@@ -23,8 +22,7 @@ export const useDataStore = defineStore('data', () => {
     const masterData = ref(null)
     const hfFluidData = ref(null)
     const injectionData = ref(null)
-    const problematicCountiesData = ref(null)
-    const intakeData = ref(null)
+    const statewideData = ref(null)
 
     // Computed
     const hasData = computed(() => isLoaded.value && !error.value)
@@ -49,8 +47,7 @@ export const useDataStore = defineStore('data', () => {
             masterData.value = master
             hfFluidData.value = hf
             injectionData.value = injection
-            problematicCountiesData.value = problematicCounties
-            intakeData.value = intake
+            statewideData.value = allOutputSFO
 
             isLoaded.value = true
             console.log('All CSV data loaded successfully')
@@ -64,6 +61,9 @@ export const useDataStore = defineStore('data', () => {
 
     function getDataByFocus(focus, dataType = 'production') {
         if (!isLoaded.value) return null
+        if (focus === 'State') {
+            return statewideData.value
+        }
 
         switch (dataType) {
             case 'production':
@@ -86,10 +86,6 @@ export const useDataStore = defineStore('data', () => {
         return data.filter(row => row.county === county)
     }
 
-    function isProblematicCounty(county) {
-        return problematicCountiesData.value?.includes(county) || false
-    }
-
     return {
         isLoaded,
         isLoading,
@@ -97,12 +93,10 @@ export const useDataStore = defineStore('data', () => {
         masterData,
         hfFluidData,
         injectionData,
-        problematicCountiesData,
-        intakeData,
         hasData,
         loadCSVData,
+        statewideData,
         getDataByFocus,
         getCountyData,
-        isProblematicCounty
     }
 })
