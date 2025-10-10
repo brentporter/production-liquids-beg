@@ -1,69 +1,58 @@
 <template>
-  <header class="app-header">
-    <div class="header-content">
-      <h1 class="app-title">Energy Data Explorer</h1>
-      <div class="header-info">
-        <v-chip>{{ mapStore.mapFocus }}</v-chip>
-        <v-chip>{{ mapStore.dataMode }}</v-chip>
-        <v-chip>
+  <v-app-bar
+      style="background: linear-gradient(135deg, #FB8C00 0%, #E65100 100%);"
+      title="Produced Water Dashboard"
+      elevation="2"
+      class="text-h5"
+      theme="dark"
+  >
+    <template v-slot:prepend>
+      <img src="@/assets/beg-logo.svg" height="55" width="200" alt=""/>
+    </template>
+
+    <template v-slot:append>
+      <div class="header-chips">
+        <v-chip
+            size="small"
+        >
+          {{ mapStore.mapFocus }}
+        </v-chip>
+        <v-chip
+            size="small"
+        >
+          {{ mapStore.dataMode }}
+        </v-chip>
+        <v-chip
+            size="small"
+        >
           {{ mapStore.dataMode === 'production' ? mapStore.selectedProduction : mapStore.selectedInjection }}
         </v-chip>
       </div>
-    </div>
-  </header>
+    </template>
+  </v-app-bar>
 </template>
 
 <script setup>
 import { useMapStore } from '../stores/mapStore'
-import { VChip } from 'vuetify/components'
 
 const mapStore = useMapStore()
+const chipColor = 'primary'
+
+defineEmits(['toggle-sidebar'])
 </script>
 
 <style scoped>
-.app-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.app-title {
-  font-size: 24px;
-  font-weight: 600;
-}
-
-.header-info {
+.header-chips {
   display: flex;
   gap: 8px;
-  font-size: 14px;
+  margin-right: 8px;
+  color: whitesmoke;
 }
 
 @media (max-width: 768px) {
-  .app-title {
-    font-size: 20px;
-  }
-
-  .header-info {
-    font-size: 12px;
-    gap: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .header-content {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .app-title {
-    font-size: 18px;
+  .header-chips {
+    gap: 4px;
+    margin-right: 4px;
   }
 }
 </style>

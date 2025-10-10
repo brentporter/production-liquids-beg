@@ -8,7 +8,7 @@ export const useMapStore = defineStore('map', () => {
     const dataMode = ref('production') // production or injection
     const selectedProduction = ref('Liquid Oil') // Liquid Oil, Gas, Produced Water
     const selectedInjection = ref('HF Fluid') // HF Fluid, Salt Water Disposal
-    const mapCenter = ref([-98, 31])
+    const mapCenter = ref([-99, 31])
     const mapZoom = ref(5)
 
     // Available options

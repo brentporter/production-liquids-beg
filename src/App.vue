@@ -1,7 +1,8 @@
 <template>
+  <v-app>
   <div class="app-container">
     <AppHeader />
-    <div class="main-layout">
+    <div class="main-layout mt-12">
       <aside class="sidebar" v-show="sidebarOpen">
         <button class="sidebar-close" v-show="sidebarOpen" @click="sidebarOpen = !sidebarOpen">×</button>
         <MapControls />
@@ -12,6 +13,7 @@
       </main>
     </div>
   </div>
+  </v-app>
 </template>
 
 <script setup>
@@ -77,7 +79,7 @@ const sidebarOpen = ref(true)
 
 .menu-toggle {
   position: absolute;
-  top: 16px;
+  top: 20px;
   left: 16px;
   z-index: 10;
   width: 40px;
@@ -108,7 +110,7 @@ const sidebarOpen = ref(true)
 }
 
 .esri-ui-bottom-left {
-  bottom: 3.75rem !important;
+  bottom: 2.2rem !important;
   left: 0.25rem !important;
 }
 
