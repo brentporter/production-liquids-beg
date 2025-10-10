@@ -18,7 +18,7 @@
 import { ref } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import MapControls from './components/MapControls.vue'
-import MapView from './components/MapView.vue'
+import MapView from './components/MapLarge.vue'
 
 const sidebarOpen = ref(true)
 </script>

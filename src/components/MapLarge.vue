@@ -53,7 +53,7 @@ onMounted(()=>{
 
   const initialView = mapStore.mapZoom > 0
       ? { center: mapStore.mapCenter, zoom: mapStore.mapZoom }
-      : { center: [-99.75, 30.75], zoom: 5 }
+      : { center: [-94.75, 30.75], zoom: 6 }
 
   begMap = new Map({
     // basemap:'dark-gray-vector',             // Create a Map object
