@@ -17,7 +17,14 @@ const vuetify = createVuetify({
         defaultSet: 'mdi', // This is already the default value - only for display purposes
     },
     themes: {
-        defaultTheme: 'dark'
+        dark: {
+            colors: {
+                background: '#121212',
+                surface: '#1e1e1e',
+                primary: '#667eea',
+                secondary: '#764ba2',
+            }
+        }
     },
     components,
     directives,

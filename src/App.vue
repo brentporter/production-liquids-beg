@@ -2,14 +2,12 @@
   <div class="app-container">
     <AppHeader />
     <div class="main-layout">
-      <aside class="sidebar" style="background-color: #000000;color:white;" :class="{ open: sidebarOpen }">
-        <button class="sidebar-close" @click="sidebarOpen = false">×</button>
+      <aside class="sidebar" v-show="sidebarOpen">
+        <button class="sidebar-close" v-show="sidebarOpen" @click="sidebarOpen = !sidebarOpen">×</button>
         <MapControls />
       </aside>
       <main class="content">
-        <button class="menu-toggle" @click="sidebarOpen = !sidebarOpen">
-          ☰
-        </button>
+        <button class="menu-toggle" style="color: #000000" v-show="!sidebarOpen" @click="sidebarOpen = !sidebarOpen">☰</button>
         <MapView />
       </main>
     </div>
@@ -22,7 +20,7 @@ import AppHeader from './components/AppHeader.vue'
 import MapControls from './components/MapControls.vue'
 import MapView from './components/MapView.vue'
 
-const sidebarOpen = ref(false)
+const sidebarOpen = ref(true)
 </script>
 
 <style>
@@ -48,12 +46,13 @@ const sidebarOpen = ref(false)
 
 .sidebar {
   width: 280px;
-  background: rgb(var(--v-theme-surface));
   border-right: 1px solid rgb(var(--v-theme-border));
   overflow-y: auto;
   transition: transform 0.3s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   flex-shrink: 0;
+  background-color: #000000;
+  color: whitesmoke;
 }
 
 .content {
@@ -63,8 +62,20 @@ const sidebarOpen = ref(false)
   overflow: hidden;
 }
 
+.sidebar-toggle {
+  background-color: #000000;
+  position: absolute;
+  top: 10px;
+  left: 225px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 20;
+}
+
 .menu-toggle {
-  display: none;
   position: absolute;
   top: 16px;
   left: 16px;
@@ -80,13 +91,14 @@ const sidebarOpen = ref(false)
 }
 
 .sidebar-close {
-  display: none;
-  position: absolute;
-  top: 12px;
-  right: 12px;
+  position: relative;
+  float: left;
+  top: 10px;
+  left: 252px;
   background: none;
   border: none;
-  font-size: 28px;
+  font-size: 24px;
+  color: whitesmoke;
   cursor: pointer;
   z-index: 20;
 }

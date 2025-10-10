@@ -3,35 +3,36 @@
     <div class="control-section">
       <h3 class="section-title">Map Focus</h3>
       <div class="button-group">
-        <button
+        <v-btn
             v-for="option in mapStore.mapFocusOptions"
             :key="option.value"
-            class="control-button"
-            :class="{ active: mapStore.mapFocus === option.value }"
+            :variant="mapStore.mapFocus === option.value ? 'flat' : 'outlined'"
+            :color="mapStore.mapFocus === option.value ? 'primary' : 'default'"
             @click="mapStore.setMapFocus(option.value)"
+            class="w-100"
         >
           {{ option.label }}
-        </button>
+        </v-btn>
       </div>
     </div>
 
     <div class="control-section">
       <h3 class="section-title">Data Mode</h3>
       <div class="toggle-group">
-        <button
-            class="toggle-button"
+        <v-btn
+            class="control-button"
             :class="{ active: mapStore.dataMode === 'production' }"
             @click="mapStore.setDataMode('production')"
         >
           Production
-        </button>
-        <button
-            class="toggle-button"
+        </v-btn>
+        <v-btn
+            class="control-button"
             :class="{ active: mapStore.dataMode === 'injection' }"
             @click="mapStore.setDataMode('injection')"
         >
           Injection
-        </button>
+        </v-btn>
       </div>
     </div>
 
@@ -73,11 +74,11 @@
       </div>
     </div>
 
-    <div class="control-section">
-      <button class="refresh-button">
+<!--    <div class="control-section">
+      <v-btn class="refresh-button">
         ⟳ Refresh Data
-      </button>
-    </div>
+      </v-btn>
+    </div>-->
   </div>
 </template>
 
@@ -116,7 +117,6 @@ const mapStore = useMapStore()
 }
 
 .control-button {
-  padding: 12px 16px;
   background: #f5f5f5;
   border: 2px solid #e0e0e0;
   border-radius: 6px;
@@ -182,7 +182,6 @@ const mapStore = useMapStore()
 }
 
 .refresh-button {
-  padding: 12px 16px;
   background: #667eea;
   color: white;
   border: none;
