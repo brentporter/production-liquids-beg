@@ -25,6 +25,11 @@ import { useMapStore } from '../stores/mapStore'
 import {onMounted, ref, watch} from 'vue'
 import Map from "@arcgis/core/Map.js";
 import MapView from "@arcgis/core/views/MapView.js";
+import Viewpoint from "@arcgis/core/Viewpoint.js";
+import {Point} from "@arcgis/core/geometry.js";
+import Home from "@arcgis/core/widgets/Home.js";
+import Legend from "@arcgis/core/widgets/Legend.js";
+import Expand from "@arcgis/core/widgets/Expand.js";
 const isInitializing = ref(true)
 let begMap,begView;
 
@@ -86,6 +91,32 @@ onMounted(()=>{
       isInitializing.value = false
     }, 500)
   })
+
+  let homeWidget = new Home({
+    view: begView,
+    viewpoint: new Viewpoint({
+      center: new Point({
+        longitude: -99.75,
+        latitude: 30.75
+      }),
+      scale: 10000000 // Adjust scale as needed
+    })
+  })
+
+  begView.ui.add(homeWidget, "top-left")
+
+  let legend = new Legend({
+    view: begView,
+  })
+  let bkExpand = new Expand({
+    view: begView,
+    content: legend,
+    expanded: false,
+    expandTooltip: 'Show Legend'
+  });
+
+  begView.ui.add(bkExpand, "bottom-left");
+
 })
 </script>
 
