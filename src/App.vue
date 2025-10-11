@@ -3,7 +3,7 @@
   <div class="app-container">
     <AppHeader />
     <div class="main-layout mt-12">
-      <aside class="sidebar" v-show="sidebarOpen">
+      <aside class="sidebar" style="background-color: #000000" :class="{ open: sidebarOpen }">
         <button class="sidebar-close" v-show="sidebarOpen" @click="sidebarOpen = !sidebarOpen">×</button>
         <MapControls />
       </aside>
@@ -39,22 +39,31 @@ const sidebarOpen = ref(true)
   background: #f5f5f5;
 }
 
+.sidebar {
+  position: absolute;
+  width: 280px;
+  background: white;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+  left: 0;
+  height: calc(100vh - 60px);
+  transform: translateX(-100%);
+  z-index: 99;
+  color: whitesmoke;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
 .main-layout {
   display: flex;
   flex: 1;
   overflow: hidden;
   position: relative;
-}
-
-.sidebar {
-  width: 280px;
-  border-right: 1px solid rgb(var(--v-theme-border));
-  overflow-y: auto;
-  transition: transform 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  flex-shrink: 0;
-  background-color: #000000;
-  color: whitesmoke;
 }
 
 .content {
@@ -63,7 +72,6 @@ const sidebarOpen = ref(true)
   position: relative;
   overflow: hidden;
 }
-
 .sidebar-toggle {
   background-color: #000000;
   position: absolute;
@@ -104,14 +112,40 @@ const sidebarOpen = ref(true)
   cursor: pointer;
   z-index: 20;
 }
+/*
 .esri-ui-top-left {
   top: 3.75rem !important;
   left: 0.25rem !important;
 }
+*/
 
+.esri-ui-top-left {
+  top: 3.75rem !important;
+  left: 4px !important;
+  transition: left 0.3s ease;
+}
+
+.sidebar.open ~ .content .esri-ui-top-left {
+  left: 300px !important;
+}
+
+/*.esri-ui-bottom-left {
+  bottom: 2.2rem !important;
+  left: 0.25rem !important;
+}*/
 .esri-ui-bottom-left {
   bottom: 2.2rem !important;
   left: 0.25rem !important;
+  transition: left 0.3s ease;
+}
+
+.sidebar.open ~ .content .esri-ui-bottom-left {
+  left: 300px !important;
+}
+
+.esri-ui-top-right {
+  top: 3.75rem !important;
+  right: 0.25rem !important;
 }
 
 @media (max-width: 480px) {

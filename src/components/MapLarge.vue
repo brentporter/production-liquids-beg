@@ -1,7 +1,11 @@
 <template>
   <div class="map-container">
     <div id="mapViewer" class="mapdiv"></div>
-<!--    <div class="map-placeholder">
+    <div id="testButtonDiv" style="min-width: 250px;min-height: 40px;background-color: black !important;">
+      <MapDates />
+    </div>
+<!--    v-if="mapLayerView === 'countyBoundariesTx'"
+<div class="map-placeholder">
       <div class="placeholder-content">
         <div class="map-icon">🗺️</div>
         <p>ESRI Map View</p>
@@ -32,9 +36,10 @@ import Home from "@arcgis/core/widgets/Home.js";
 import Legend from "@arcgis/core/widgets/Legend.js";
 import Expand from "@arcgis/core/widgets/Expand.js";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer.js";
+import MapDates from "@/components/MapDates.vue";
 const isInitializing = ref(true)
 let begMap,begView,countyBoundariesTx,
-    countiesHFTx,countyProducedWaterTx,
+    countiesHFTx,countyProducedWaterTx,customExpand,
     countyLiquidOilTx,countiesInjectionTx,layerMap;
 
 const mapStore = useMapStore();
@@ -144,6 +149,14 @@ onMounted(()=>{
   });
 
   begView.ui.add(bkExpand, "bottom-left");
+
+  customExpand = new Expand({
+    view: begView,
+    expanded: true,
+    expandTooltip: 'Show View Options',
+    content: document.getElementById('testButtonDiv')
+  });
+  begView.ui.add(customExpand, 'top-right');
 
   countyBoundariesTx = new FeatureLayer({
     //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Well_Production/FeatureServer/0',
