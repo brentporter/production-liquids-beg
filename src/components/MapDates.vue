@@ -11,7 +11,7 @@
     </template>
     <template v-slot:subtitle>
       <span style="color: whitesmoke">Choose Year -<br/>
-        Current Display {{store.selectedProduction}} Produced for {{store.selectedProductionYear}}</span>
+        Current Display {{store.selectedProduction}} Produced for <br/> {{store.selectedProductionYear}}</span>
     </template>
 
     <v-card-text class="bg-surface-dark pt-4">
@@ -21,20 +21,24 @@
       <div v-show="showYears" style="min-height: 180px;">
         <v-divider></v-divider>
 
-          <v-chip-group column class="pl-2 pl-md-4"  v-model="store.selectedProductionYear" @update:model-value="store.setSelectedProductionYear"
-              selected-class="error"
-          >
-            <v-chip
-                v-for="year in aryProdYears"
-                :key="year"
-                :text="year"
-                variant="flat"
-                :value="year"
-                v-model="store.selectedProductionYear"
-                :color="getRandomColorProduction(year)"
-                @click="toggleChipYear(year)"
-            ></v-chip>
-          </v-chip-group>
+        <v-chip-group
+            :model-value="store.selectedProductionYear"
+            @update:model-value="store.setSelectedProductionYear"
+            column
+            class="pl-2 pl-md-4"
+            selected-class="error"
+        >
+          <v-chip
+              v-for="year in store.productionYearOptions"
+              :key="year"
+              :text="year"
+              variant="flat"
+              :value="year"
+              :color="getRandomColorProduction(year)"
+              :class="{ 'opacity-100': store.selectedProductionYear === year, 'opacity-50': store.selectedProductionYear !== year }"
+              @click="() => { console.log('Clicked year:', year); store.setSelectedProductionYear(year) }"
+          ></v-chip>
+        </v-chip-group>
       </div>
     </v-expand-transition>
   </v-card>
@@ -42,7 +46,7 @@
 </template>
 <script setup>
 
-import {ref} from "vue";
+import {ref, watch} from "vue";
 import { useDisplay } from 'vuetify'
 import {useMapStore} from "../stores/mapStore.js";
 const { smAndDown, mdAndUp } = useDisplay()
@@ -76,10 +80,6 @@ const chipColorsProd = [
   'brown',
 ]
 
-const aryProdYears =['2010','2011','2012','2013','2014',
-  '2015','2016','2017','2018',
-  '2019','2020','2021','2022','2023','2024','2025']
-
 function toggleChipYear(incomingYear){
   console.log(incomingYear);
   store.setSelectedProductionYear(incomingYear)
@@ -87,8 +87,7 @@ function toggleChipYear(incomingYear){
 
 function toggleChipProduct(incomingProduct){
   console.log(incomingProduct);
-  store.setProductionType(incomingProduct);
-
+  //store.setProductionType(incomingProduct);
 }
 
 const getRandomColorProduction = (countyName) => {
@@ -108,6 +107,24 @@ const productionTags = [
   'Liquid (Oil)',
 ]
 
+watch(
+    () => store.selectedProductionYear,
+    (newYear) => {
+      console.log('Year changed to:', newYear)
+      console.log('Current expression:', store.esriExpression)
+      console.log('Current layer view:', store.currentMapLayerView)
+    }
+)
+
+watch(
+    () => store.esriExpression,
+    (newExpression) => {
+      console.log('esriExpression changed:', newExpression)
+      if (newExpression) {
+        // updateMapLayerExpression(newExpression)
+      }
+    }
+)
 </script>
 
 <style scoped>

@@ -37,6 +37,9 @@ import Legend from "@arcgis/core/widgets/Legend.js";
 import Expand from "@arcgis/core/widgets/Expand.js";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer.js";
 import MapDates from "@/components/MapDates.vue";
+import {createClassBreaksRenderer} from "@arcgis/core/smartMapping/renderers/size.js";
+import {ClassBreaksRenderer} from "@arcgis/core/renderers.js";
+import {SimpleFillSymbol} from "@arcgis/core/symbols.js";
 const isInitializing = ref(true)
 let begMap,begView,countyBoundariesTx,
     countiesHFTx,countyProducedWaterTx,customExpand,
@@ -74,18 +77,210 @@ watch(
 
       // Add the correct layer
       if (newMode === 'production' && newProduction === 'Gas') {
+        mapStore.setCurrentMapLayerView('countyBoundariesTx')
         begMap.add(layerMap['countyBoundariesTx'])
       } else if (newMode === 'production' && newProduction === 'Liquid Oil') {
+        mapStore.setCurrentMapLayerView('countyLiquidOilTx')
         begMap.add(layerMap['countyLiquidOilTx'])
       } else if(newMode === 'production' && newProduction === 'Produced Water'){
+        mapStore.setCurrentMapLayerView('countyProducedWaterTx')
         begMap.add(layerMap['countyProducedWaterTx'])
       } else if (newMode === 'injection' && newInjection === 'HF Fluid') {
+        mapStore.setCurrentMapLayerView('countiesHFTx')
         begMap.add(layerMap['countiesHFTx'])
       } else if (newMode === 'injection' && newInjection === 'Salt Water Disposal') {
+        mapStore.setCurrentMapLayerView('countiesInjectionTx')
         begMap.add(layerMap['countiesInjectionTx'])
       }
     }
 )
+
+watch(
+    () => mapStore.esriExpression,
+    (newExpression) => {
+      if (newExpression) {
+        console.log('New ESRI expression:', newExpression)
+        // Update your map layer with the new expression
+        updateMapLayerExpression(newExpression)
+      }
+    }
+)
+
+const colorVisVar = {
+  type: "color",
+  classificationMethod: "natural-breaks",
+  //valueExpression: esriExpression.value,
+  field:'Gas_Produced_BBL_2010',
+  //normalizationField:'County_Area',
+  numClasses: 7,
+  stops: [
+    /*    {
+          value: 0, color: "#CCCCCC",
+          label: "0"
+        },
+        {
+          value: 12000000, color: "#efdab2",
+          label: "1-12000000"
+        },
+        {
+          value: 36000000, color: "#42ff00",
+          label: "12000001-36000000"
+        },
+        {
+          value: 77000000, color: "#1CD84F",
+          label: "36000001-77000000"
+        },
+        {
+          value: 154000000, color: "#22AFA2",
+          label: "77000001-154000000"
+        },
+        {
+          value: 294000000, color: "#386AA6",
+          label: "154000000-294000000"
+        },
+        {
+          value: 894000000, color: "#2F0E89",
+          label: "294000000-894000000"
+        },*/
+  ]
+};
+
+const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
+  if (!classBreakInfos || classBreakInfos.length === 0) return [];
+//'Gas','Water','Liquid (Oil)',
+  return classBreakInfos.map((classBreak, index) => {
+    const value = classBreak.maxValue;
+    const color = colorArray[index % colorArray.length];
+
+    let label;
+    if (index === 0) {
+      label = "0";
+    } else {
+      const prevMax = classBreakInfos[index - 1].maxValue;
+
+      // Format based on unit type
+      let prevFormatted, currentFormatted, unit;
+      if (unitType === 'BBL') {
+        prevFormatted = (prevMax / 1000000000).toFixed(1);
+        currentFormatted = (value / 1000000000).toFixed(1);
+        unit = 'B BBL';
+      } else if (unitType === 'GAL') {
+        prevFormatted = (prevMax / 1000000).toFixed(1);
+        currentFormatted = (value / 1000000).toFixed(1);
+        unit = 'M GAL';
+      } else { // MCF
+        prevFormatted = (prevMax / 1000000).toFixed(1);
+        currentFormatted = (value / 1000000).toFixed(1);
+        unit = 'M MCF';
+      }
+
+      label = `${prevFormatted} - ${currentFormatted} ${unit}`;
+    }
+
+    return { value, color, label };
+  });
+};
+async function updateMapLayerExpression(newExpression) {
+  let colorArray;
+  let unitType;
+
+  if (mapStore.currentMapLayerView === 'countyBoundariesTx') {
+    colorArray = ["#CCCCCC", "#FFE197", "#42ff00", "#1CD84F", "#22AFA2", "#386AA6", "#2F0E89"];
+    unitType = mapStore.selectedProduction === 'Gas' ? 'mcf' : 'bbl';
+  } else if (mapStore.currentMapLayerView === 'countyLiquidOilTx') {
+    colorArray = ['#CCCCCC',
+      '#DAD7A4', '#C6BC8F',
+      '#B3A37A', '#9E8A65',
+      '#8A7151', '#785A3E'];
+    unitType = 'BBL';
+  } else if (mapStore.currentMapLayerView === 'countyProducedWaterTx') {
+    colorArray = ['#CCCCCC',
+      '#CCEBC5', '#A8DDB5',
+      '#7BCCC4', '#4EB3D3',
+      '#2B8CBE', '#08589E'];
+    unitType = 'BBL';
+  } else if (mapStore.currentMapLayerView === 'countiesHFTx') {
+    colorArray = ['#CCCCCC',
+      '#FFEBAF', '#C5FF00',
+      '#FFFF00', '#FFAA00',
+      '#FF6600', '#FF0000'];
+    unitType = 'GAL';
+  } else if (mapStore.currentMapLayerView === 'countiesInjectionTx') {
+    colorArray = ['#CCCCCC',
+      '#92F4EB', '#00A7DF',
+      '#658FF8', '#5804F5',
+      '#BA0EF4', '#FC20F5'];
+    unitType = 'BBL';
+  }
+
+  const currentLayer = layerMap[mapStore.currentMapLayerView];
+  try {
+
+    const sizeParams = {
+      layer: currentLayer,
+      field: newExpression,
+      classificationMethod: "natural-breaks",
+      numClasses: 7
+    }
+    console.log(currentLayer);
+    console.log(newExpression);
+    console.log(sizeParams);
+
+    await createClassBreaksRenderer(sizeParams).then(async function (response) {
+      console.log(response.classBreaksResult.classBreakInfos)
+      const classBreaks = response.classBreaksResult.classBreakInfos;
+
+      const originalFirst = {...classBreaks[0]};
+      const originalSecond = {...classBreaks[1]};
+
+// Insert a new zero-only break at the beginning
+      classBreaks.unshift({
+        minValue: 0,
+        maxValue: 0,
+        label: "0"
+      });
+
+// Now merge what were the original [0] and [1] into the new [1] position
+// (they're now at positions [1] and [2] after the unshift)
+      classBreaks[1] = {
+        minValue: originalFirst.minValue,
+        maxValue: originalSecond.maxValue,
+        label: `${originalFirst.minValue} - ${originalSecond.maxValue}`
+      };
+
+// Remove what's now at position [2] since it's merged into [1]
+      classBreaks.splice(2, 1);
+
+
+      const formattedStops = transformClassBreaksToStops(classBreaks, colorArray, unitType);
+
+      const rendererNew = new ClassBreaksRenderer({
+        field: newExpression,
+        classBreakInfos: classBreaks.map((classBreak, index) => ({
+          minValue: classBreak.minValue,
+          maxValue: classBreak.maxValue,
+          symbol: new SimpleFillSymbol({
+            color: formattedStops[index].color,
+            outline: {
+              color: [255, 255, 255, 1.0],
+              width: 2
+            }
+          }),
+          label: formattedStops[index].label
+        }))
+      });
+      console.log(colorVisVar.stops);
+      currentLayer.renderer = rendererNew;
+      /*if (legend) {
+        legend.view = null; // Clear it
+        await nextTick();
+        legend.view = begView; // Re-attach it
+      }*/
+    })
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 onMounted(()=>{
 
