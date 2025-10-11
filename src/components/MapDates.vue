@@ -7,39 +7,16 @@
       width="400"
   >
     <template v-slot:title>
-      <span class="font-weight-black">Production by County</span>
+      <span class="font-weight-black" style="color: whitesmoke">Production Years</span>
     </template>
     <template v-slot:subtitle>
-      <span>Choose Production & Year -<br/>
+      <span style="color: whitesmoke">Choose Year -<br/>
         Current Display {{store.selectedProduction}} Produced for {{store.selectedProductionYear}}</span>
     </template>
 
-    <v-card-text class="bg-surface-light pt-4">
-      <v-btn color="indigo" class="ma-2" size="small" @click="showProduction = !showProduction">Well Products</v-btn>
+    <v-card-text class="bg-surface-dark pt-4">
       <v-btn color="orange" class="ma-2" size="small" @click="showYears =!showYears">Production Years</v-btn>
     </v-card-text>
-    <v-expand-transition>
-      <div v-show="showProduction">
-        <v-divider></v-divider>
-        <v-card-text>
-          <v-chip-group
-              v-model="store.selectedProduction"
-              @update:model-value="store.setSelectedProduction"
-              selected-class="error"
-          >
-            <v-chip
-                v-for="tag in productionTags"
-                :key="tag"
-                :text="tag"
-                variant="flat"
-                :value="tag"
-                :color="getRandomColorProduction(tag)"
-                @click="toggleChipProduct(tag)"
-            >{{tag}}</v-chip>
-          </v-chip-group>
-        </v-card-text>
-      </div>
-    </v-expand-transition>
     <v-expand-transition>
       <div v-show="showYears" style="min-height: 180px;">
         <v-divider></v-divider>
@@ -73,7 +50,7 @@ const store = useMapStore()
 
 //let selectedChipYear = ref('')
 let showProduction = ref(false)
-let showYears = ref(false)
+let showYears = ref(true)
 
 let currentDisplayProduct = store.selectedProduction
 let currentDisplayYear = store.selectedProductionYear
