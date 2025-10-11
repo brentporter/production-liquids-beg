@@ -35,7 +35,7 @@ import FeatureLayer from "@arcgis/core/layers/FeatureLayer.js";
 const isInitializing = ref(true)
 let begMap,begView,countyBoundariesTx,
     countiesHFTx,countyProducedWaterTx,
-    countiesInjectionTx,layerMap;
+    countyLiquidOilTx,countiesInjectionTx,layerMap;
 
 const mapStore = useMapStore();
 const dataStore = useDataStore()
@@ -62,12 +62,18 @@ watch(
 
       // Remove all layers first
       begMap.remove(layerMap['countyBoundariesTx'])
+      begMap.remove(layerMap['countyLiquidOilTx'])
+      begMap.remove(layerMap['countyProducedWaterTx'])
       begMap.remove(layerMap['countiesHFTx'])
       begMap.remove(layerMap['countiesInjectionTx'])
 
       // Add the correct layer
       if (newMode === 'production' && newProduction === 'Gas') {
         begMap.add(layerMap['countyBoundariesTx'])
+      } else if (newMode === 'production' && newProduction === 'Liquid Oil') {
+        begMap.add(layerMap['countyLiquidOilTx'])
+      } else if(newMode === 'production' && newProduction === 'Produced Water'){
+        begMap.add(layerMap['countyProducedWaterTx'])
       } else if (newMode === 'injection' && newInjection === 'HF Fluid') {
         begMap.add(layerMap['countiesHFTx'])
       } else if (newMode === 'injection' && newInjection === 'Salt Water Disposal') {
@@ -142,6 +148,7 @@ onMounted(()=>{
   countyBoundariesTx = new FeatureLayer({
     //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Well_Production/FeatureServer/0',
     //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Tx_Well_Production/FeatureServer/0',
+    //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
     url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
     setAutoGeneralize: true,
     outFields: ["*"],
@@ -149,14 +156,25 @@ onMounted(()=>{
     id: "countyBoundariesTx",
   })
 
-  countyProducedWaterTx = new FeatureLayer({
+  countyLiquidOilTx = new FeatureLayer({
     //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Well_Production/FeatureServer/0',
     //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Tx_Well_Production/FeatureServer/0',
-    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
+    //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
+    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Liquid_Oil_Production/FeatureServer/0',
     setAutoGeneralize: true,
     outFields: ["*"],
     opacity:0.75,
-    id: "countyBoundariesTx",
+    id: "countyLiquidOilTx",
+  })
+
+  countyProducedWaterTx = new FeatureLayer({
+    //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Well_Production/FeatureServer/0',
+    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Tx_Well_Production/FeatureServer/0',
+    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Produced_Water_Production/FeatureServer/0',
+    setAutoGeneralize: true,
+    outFields: ["*"],
+    opacity:0.75,
+    id: "countyProducedWaterTx",
   })
 
   countiesHFTx = new FeatureLayer({
@@ -177,6 +195,8 @@ onMounted(()=>{
 
   layerMap = {
     'countyBoundariesTx': countyBoundariesTx,
+    'countyLiquidOilTx':countyLiquidOilTx,
+    'countyProducedWaterTx':countyProducedWaterTx,
     'countiesHFTx': countiesHFTx,
     'countiesInjectionTx': countiesInjectionTx
   };

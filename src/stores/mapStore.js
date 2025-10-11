@@ -6,10 +6,14 @@ export const useMapStore = defineStore('map', () => {
     // State
     const mapFocus = ref('State') // State, Basin, County, Grid
     const dataMode = ref('production') // production or injection
-    const selectedProduction = ref('Liquid Oil') // Liquid Oil, Gas, Produced Water
+    const selectedProduction = ref('Gas') // Liquid Oil, Gas, Produced Water
     const selectedInjection = ref('HF Fluid') // HF Fluid, Salt Water Disposal
     const mapCenter = ref([-99, 31])
     const mapZoom = ref(5)
+    let productionYearOptions= [2010,2011,2012,2013,2014,2015,
+        2016,2017,2018,2019,2020,2021,
+        2022,2023,2024,2025]
+    let selectedProductionYear = ref(2010);
 
     // Available options
     const mapFocusOptions = [
@@ -43,6 +47,10 @@ export const useMapStore = defineStore('map', () => {
         selectedProduction.value = production
     }
 
+    function setSelectedProductionYear(year){
+        selectedProductionYear.value = year
+    }
+
     function setSelectedInjection(injection) {
         selectedInjection.value = injection
     }
@@ -59,6 +67,7 @@ export const useMapStore = defineStore('map', () => {
         mapFocus,
         dataMode,
         selectedProduction,
+        selectedProductionYear,
         selectedInjection,
         mapCenter,
         mapZoom,
@@ -69,6 +78,7 @@ export const useMapStore = defineStore('map', () => {
         setDataMode,
         setSelectedProduction,
         setSelectedInjection,
+        setSelectedProductionYear,
         setMapCenter,
         setMapZoom
     }
