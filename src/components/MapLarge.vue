@@ -22,6 +22,7 @@
 
 <script setup>
 import { useMapStore } from '../stores/mapStore'
+import { useDataStore } from '../stores/dataStore'
 import {onMounted, ref, watch} from 'vue'
 import Map from "@arcgis/core/Map.js";
 import MapView from "@arcgis/core/views/MapView.js";
@@ -33,9 +34,11 @@ import Expand from "@arcgis/core/widgets/Expand.js";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer.js";
 const isInitializing = ref(true)
 let begMap,begView,countyBoundariesTx,
-    countiesHFTx,countiesInjectionTx,layerMap;
+    countiesHFTx,countyProducedWaterTx,
+    countiesInjectionTx,layerMap;
 
 const mapStore = useMapStore();
+const dataStore = useDataStore()
 
 // Watch for changes to trigger map updates
 watch(
@@ -45,27 +48,30 @@ watch(
       () => mapStore.selectedProduction,
       () => mapStore.selectedInjection
     ],
-    ([newFocus, newMode, newProduction, newInjection], [oldFocus, oldMode, oldProduction, oldInjection]) => {
-      // Handle mapFocus changes
-      if (newFocus !== oldFocus) {
-        // Zoom/pan to new focus area
+    ([newFocus, newMode, newProduction, newInjection]) => {
+      if (!dataStore.hasData) {
+        console.log('Data not loaded yet')
+        return
       }
 
-      // Handle layer visibility - toggle between Gas Production, HF_Fluid, and Injection
-      if (newMode !== oldMode || newProduction !== oldProduction || newInjection !== oldInjection) {
-        // Remove all layers first
-        begMap.remove(layerMap['countyBoundariesTx'])
-        begMap.remove(layerMap['countiesHFTx'])
-        begMap.remove(layerMap['countiesInjectionTx'])
+      // Get statewide data for the selected type
+      const data = dataStore.getDataByFocus(newFocus,
+          newMode === 'production' ? 'production' :
+              newInjection === 'HF Fluid' ? 'hf_fluid' : 'injection'
+      )
 
-        // Add the correct layer based on current selections
-        if (newMode === 'production' && newProduction === 'Gas') {
-          begMap.add(layerMap['countyBoundariesTx'])
-        } else if (newMode === 'injection' && newInjection === 'HF Fluid') {
-          begMap.add(layerMap['countiesHFTx'])
-        } else if (newMode === 'injection' && newInjection === 'Salt Water Disposal') {
-          begMap.add(layerMap['countiesInjectionTx'])
-        }
+      // Remove all layers first
+      begMap.remove(layerMap['countyBoundariesTx'])
+      begMap.remove(layerMap['countiesHFTx'])
+      begMap.remove(layerMap['countiesInjectionTx'])
+
+      // Add the correct layer
+      if (newMode === 'production' && newProduction === 'Gas') {
+        begMap.add(layerMap['countyBoundariesTx'])
+      } else if (newMode === 'injection' && newInjection === 'HF Fluid') {
+        begMap.add(layerMap['countiesHFTx'])
+      } else if (newMode === 'injection' && newInjection === 'Salt Water Disposal') {
+        begMap.add(layerMap['countiesInjectionTx'])
       }
     }
 )
@@ -135,7 +141,18 @@ onMounted(()=>{
 
   countyBoundariesTx = new FeatureLayer({
     //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Well_Production/FeatureServer/0',
-    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Tx_Well_Production/FeatureServer/0',
+    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Tx_Well_Production/FeatureServer/0',
+    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
+    setAutoGeneralize: true,
+    outFields: ["*"],
+    opacity:0.75,
+    id: "countyBoundariesTx",
+  })
+
+  countyProducedWaterTx = new FeatureLayer({
+    //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Well_Production/FeatureServer/0',
+    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Tx_Well_Production/FeatureServer/0',
+    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
     setAutoGeneralize: true,
     outFields: ["*"],
     opacity:0.75,
