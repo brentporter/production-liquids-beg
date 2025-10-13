@@ -11,8 +11,9 @@
     </template>
 
     <template v-slot:append>
+      <span style="font-size: 1.0rem">Active Data Focus&nbsp;</span>
       <div class="header-chips">
-        <v-chip
+        - <v-chip
             size="small"
         >
           {{ mapStore.mapFocus }}
