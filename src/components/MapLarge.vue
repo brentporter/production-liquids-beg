@@ -350,7 +350,7 @@ onMounted(()=>{
   let bkExpand = new Expand({
     view: begView,
     content: legend,
-    expanded: true,
+    expanded: false,
     expandTooltip: 'Show Legend'
   });
 

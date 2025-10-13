@@ -1,5 +1,6 @@
 <template>
   <div class="years-overlay">
+    <span style="color:whitesmoke">Select Production Year Below</span>
     <div class="years-container">
       <v-chip-group
           :model-value="mapStore.selectedProductionYear"
@@ -62,7 +63,7 @@ const getRandomColorProduction = (countyName) => {
 <style scoped>
 .years-overlay {
   position: fixed;
-  top: 80px;
+  top: 65px;
   left: 60%;
   transform: translateX(-60%);
   z-index: 50;

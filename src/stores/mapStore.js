@@ -8,7 +8,7 @@ export const useMapStore = defineStore('map', () => {
     const dataMode = ref('production') // production or injection
     const selectedProduction = ref('Gas') // Liquid Oil, Gas, Produced Water
     const selectedInjection = ref('HF Fluid') // HF Fluid, Salt Water Disposal
-    const mapCenter = ref([-99, 31])
+    const mapCenter = ref([-96.5, 32])
     const mapZoom = ref(5)
     let productionYearOptions= ['2010','2011','2012','2013','2014',
         '2015','2016','2017','2018',
