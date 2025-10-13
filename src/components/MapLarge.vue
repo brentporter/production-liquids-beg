@@ -160,7 +160,11 @@ const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
 
       // Format based on unit type
       let prevFormatted, currentFormatted, unit;
-      if (unitType === 'BBL') {
+      if (unitType === 'BBL' && mapStore.currentMapLayerView === 'countyProducedWaterTx') {
+        prevFormatted = (prevMax / 1000000).toFixed(1);
+        currentFormatted = (value / 1000000).toFixed(1);
+        unit = 'M BBL';
+      } else if (unitType === 'BBL') {
         prevFormatted = (prevMax / 1000000000).toFixed(1);
         currentFormatted = (value / 1000000000).toFixed(1);
         unit = 'B BBL';
