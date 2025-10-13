@@ -7,12 +7,12 @@ const routes = [
         component: () => import('../views/Dashboard.vue'),
         meta: { title: 'Dashboard' }
     },
-    {
+    /*{
         path: '/map',
         name: 'Map',
         component: () => import('../views/MapView.vue'),
         meta: { title: 'Map View' }
-    },
+    },*/
     {
         path: '/analytics',
         name: 'Analytics',

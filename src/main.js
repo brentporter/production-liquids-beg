@@ -36,10 +36,14 @@ const vuetify = createVuetify({
 })
 app.use(createPinia())
 // Load data before mounting
-const dataStore = useDataStore()
-await dataStore.loadCSVData()
+/*const dataStore = useDataStore()
+await dataStore.loadCSVData()*/
 
 app.use(router)
 app.use(vuetify)
 app.use(VueApexCharts);
-app.mount('#app')
+;(async () => {
+    const dataStore = useDataStore()
+    await dataStore.loadCSVData()
+    app.mount('#app')
+})()
