@@ -196,13 +196,27 @@ async function updateMapLayerExpression(newExpression) {
   let unitType;
 
   if (mapStore.currentMapLayerView === 'countyBoundariesTx') {
-    colorArray = ["#CCCCCC", "#FFE197", "#42ff00", "#1CD84F", "#22AFA2", "#386AA6", "#2F0E89"];
+    let colorArrayOld = ["#CCCCCC",
+      "#FDD0A2", "#FDAE6B",
+      "#FD8D3C", "#F16913",
+      "#D94801", "#8C2D04"];
+    colorArray = ["#CCCCCC",
+      "#FCBBA1", "#FC9272",
+      "#FB6A4A","#EF3B2C",
+      "#CB181D", "#99000D"
+    ]
     unitType = mapStore.selectedProduction === 'Gas' ? 'mcf' : 'bbl';
   } else if (mapStore.currentMapLayerView === 'countyLiquidOilTx') {
-    colorArray = ['#CCCCCC',
+    let colorArrayGasOld = ['#CCCCCC',
       '#DAD7A4', '#C6BC8F',
       '#B3A37A', '#9E8A65',
       '#8A7151', '#785A3E'];
+    colorArray = ['#CCCCCC',
+        "#CCECD1","#99D8C9",
+        "#66C2A4","#41AE76",
+        "#238B45","#005824",
+
+    ]
     unitType = 'BBL';
   } else if (mapStore.currentMapLayerView === 'countyProducedWaterTx') {
     colorArray = ['#CCCCCC',
