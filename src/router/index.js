@@ -2,22 +2,19 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
     {
-        path: '/',
-        name: 'Dashboard',
-        component: () => import('../views/Dashboard.vue'),
-        meta: { title: 'Dashboard' }
-    },
-    /*{
-        path: '/map',
+        path: '/pwd/',
         name: 'Map',
         component: () => import('../views/MapView.vue'),
-        meta: { title: 'Map View' }
-    },*/
+        meta: { title: 'Produced Energy Explorer' }
+    },
     {
-        path: '/analytics',
-        name: 'Analytics',
-        component: () => import('../views/Analytics.vue'),
-        meta: { title: 'Analytics' }
+        path: '',
+        name: 'pwd',
+        redirect: to => {
+            // the function receives the target route as the argument
+            // we return a redirect path/location here.
+            return {path: '/pwd/'}
+        }
     },
     {
         path: '/:pathMatch(.*)*',

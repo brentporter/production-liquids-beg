@@ -1,13 +1,11 @@
 <template>
   <div class="map-view">
-    <map-controls />
     <map-display />
   </div>
 </template>
 
 <script setup>
-import MapControls from '../components/MapControls.vue'
-import MapDisplay from '../components/MapView.vue'
+import MapDisplay from '../components/MapLarge.vue'
 </script>
 
 <style scoped>
@@ -26,6 +24,7 @@ import MapDisplay from '../components/MapView.vue'
 
 .map-view {
   display: flex;
-  height: calc(100vh - 60px);
+  height: calc(100vh);
+  background-color: black;
 }
 </style>

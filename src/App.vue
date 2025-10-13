@@ -9,7 +9,7 @@
       </aside>
       <main class="content">
         <button class="menu-toggle" style="color: #000000" v-show="!sidebarOpen" @click="sidebarOpen = !sidebarOpen">☰</button>
-        <MapView />
+        <router-view />
       </main>
     </div>
   </div>
@@ -20,7 +20,7 @@
 import { ref } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import MapControls from './components/MapControls.vue'
-import MapView from './components/MapLarge.vue'
+import MapView from './views/MapView.vue'
 
 const sidebarOpen = ref(true)
 </script>
@@ -49,7 +49,7 @@ const sidebarOpen = ref(true)
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   flex-shrink: 0;
   left: 0;
-  height: calc(100vh - 60px);
+  height: calc(100vh);
   transform: translateX(-100%);
   z-index: 99;
   color: whitesmoke;

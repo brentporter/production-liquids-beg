@@ -455,6 +455,20 @@ onMounted(()=>{
   };
   begMap.add(countyBoundariesTx)
 
+  begView.on("click", (event) => {
+    begView.hitTest(event).then((response) => {
+      const countyFeature = response.results[0]?.graphic
+      if (countyFeature) {
+        console.log("Available attributes:", countyFeature.attributes)
+        let tmpCountyClicked = countyFeature.attributes.CNTY_NM.split(' County')[0]
+        mapStore.setSelectedCounty(tmpCountyClicked)
+        mapStore.setMapFocus('County')
+        //mapStore.selectCountyFromMap(tmpCountyClicked, mapId)
+        //mapStore.setAutocomplete(countyStore.selectedCounty.toLowerCase());
+      }
+    })
+  })
+
 })
 </script>
 
