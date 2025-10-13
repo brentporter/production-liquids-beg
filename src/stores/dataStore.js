@@ -4,7 +4,7 @@ import { ref, computed } from 'vue'
 import {
     allCountiesProductionData,
     allCountiesInjectionData,
-    allCountiesHFData
+    allCountiesHFData, allTexasProductionData
 } from '@/composables/secret'
 import {
     masterDataLoader,
@@ -43,11 +43,12 @@ export const useDataStore = defineStore('data', () => {
                 masterInjectDataLoader(allCountiesInjectionData),
                 allOutputSFO
             ])
-
+            console.log(allOutputSFO);
             masterData.value = master
             hfFluidData.value = hf
             injectionData.value = injection
-            statewideData.value = allOutputSFO
+            statewideData.value = await allOutputSFO(allTexasProductionData)
+            console.log(statewideData.value);
 
             isLoaded.value = true
             console.log('All CSV data loaded successfully')

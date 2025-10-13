@@ -14,6 +14,7 @@ export async function allOutputSFO(incomingDataSource) {
             }
         }).then(res => {
             console.log(res.data);
+            console.log("successfully loaded data");
             const dataCSV = csvStringToObjectRounding(res.data)
             return dataCSV
         }).catch(err => {

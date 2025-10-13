@@ -4,6 +4,9 @@
     <div id="testButtonDiv" style="min-width: 250px;min-height: 40px;background-color: black !important;">
       <MapDates />
     </div>
+    <div id="testButtonDiv2">
+      <InteractivePlot />
+    </div>
 <!--    v-if="mapLayerView === 'countyBoundariesTx'"
 <div class="map-placeholder">
       <div class="placeholder-content">
@@ -40,10 +43,12 @@ import MapDates from "@/components/MapDates.vue";
 import {createClassBreaksRenderer} from "@arcgis/core/smartMapping/renderers/size.js";
 import {ClassBreaksRenderer} from "@arcgis/core/renderers.js";
 import {SimpleFillSymbol} from "@arcgis/core/symbols.js";
+import InteractivePlot from "@/components/InteractivePlot.vue";
 const isInitializing = ref(true)
 let begMap,begView,countyBoundariesTx,
     countiesHFTx,countyProducedWaterTx,customExpand,
-    countyLiquidOilTx,countiesInjectionTx,layerMap;
+    customExpand2,countyLiquidOilTx,countiesInjectionTx,
+    layerMap;
 
 const mapStore = useMapStore();
 const dataStore = useDataStore()
@@ -356,6 +361,14 @@ onMounted(()=>{
     content: document.getElementById('testButtonDiv')
   });
   begView.ui.add(customExpand, 'top-right');
+
+  customExpand2 = new Expand({
+    view: begView,
+    expanded: true,
+    expandTooltip: 'Show View Options',
+    content: document.getElementById('testButtonDiv2')
+  });
+  begView.ui.add(customExpand2, 'bottom-right');
 
   countyBoundariesTx = new FeatureLayer({
     //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Well_Production/FeatureServer/0',
