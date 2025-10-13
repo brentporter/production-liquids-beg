@@ -1,64 +1,31 @@
 <template>
-<div>
-  <v-card
-      style="background-color: black !important;"
-      class="mx-auto"
-      prepend-icon="mdi-cogs"
-      width="400"
-  >
-    <template v-slot:title>
-      <span class="font-weight-black" style="color: whitesmoke">Production Years</span>
-    </template>
-    <template v-slot:subtitle>
-      <span style="color: whitesmoke">Choose Year -<br/>
-        Current Display {{store.selectedProduction}} Produced for <br/> {{store.selectedProductionYear}}</span>
-    </template>
-
-    <v-card-text class="bg-surface-dark pt-4">
-      <v-btn color="orange" class="ma-2" size="small" @click="showYears =!showYears">Production Years</v-btn>
-    </v-card-text>
-    <v-expand-transition>
-      <div v-show="showYears" style="min-height: 180px;">
-        <v-divider></v-divider>
-
-        <v-chip-group
-            :model-value="store.selectedProductionYear"
-            @update:model-value="store.setSelectedProductionYear"
-            column
-            class="pl-2 pl-md-4"
-            selected-class="error"
+  <div class="years-overlay">
+    <div class="years-container">
+      <v-chip-group
+          :model-value="mapStore.selectedProductionYear"
+          @update:model-value="mapStore.setSelectedProductionYear"
+          class="years-group"
+      >
+        <v-chip
+            v-for="year in mapStore.productionYearOptions"
+            :key="year"
+            :value="year"
+            :text="year"
+            variant="flat"
+            size="small"
+            :color="getRandomColorProduction(year)"
         >
-          <v-chip
-              v-for="year in store.productionYearOptions"
-              :key="year"
-              :text="year"
-              variant="flat"
-              :value="year"
-              :color="getRandomColorProduction(year)"
-              :class="{ 'opacity-100': store.selectedProductionYear === year, 'opacity-50': store.selectedProductionYear !== year }"
-              @click="() => { console.log('Clicked year:', year); store.setSelectedProductionYear(year) }"
-          ></v-chip>
-        </v-chip-group>
-      </div>
-    </v-expand-transition>
-  </v-card>
-</div>
+          {{ year }}
+        </v-chip>
+      </v-chip-group>
+    </div>
+  </div>
 </template>
+
 <script setup>
+import { useMapStore } from '../stores/mapStore.js'
 
-import {ref, watch} from "vue";
-import { useDisplay } from 'vuetify'
-import {useMapStore} from "../stores/mapStore.js";
-const { smAndDown, mdAndUp } = useDisplay()
-const store = useMapStore()
-
-//let selectedChipYear = ref('')
-let showProduction = ref(false)
-let showYears = ref(true)
-
-let currentDisplayProduct = store.selectedProduction
-let currentDisplayYear = store.selectedProductionYear
-
+const mapStore = useMapStore()
 const chipColorsProd = [
   'secondary',
   'blue-grey',
@@ -79,17 +46,6 @@ const chipColorsProd = [
   'deep-orange',
   'brown',
 ]
-
-function toggleChipYear(incomingYear){
-  console.log(incomingYear);
-  store.setSelectedProductionYear(incomingYear)
-}
-
-function toggleChipProduct(incomingProduct){
-  console.log(incomingProduct);
-  //store.setProductionType(incomingProduct);
-}
-
 const getRandomColorProduction = (countyName) => {
   // Use county name to generate consistent hash for color selection
   let hash = 0
@@ -101,32 +57,60 @@ const getRandomColorProduction = (countyName) => {
   return chipColorsProd[colorIndex]
 }
 
-const productionTags = [
-  'Gas',
-  'Water',
-  'Liquid (Oil)',
-]
-
-watch(
-    () => store.selectedProductionYear,
-    (newYear) => {
-      console.log('Year changed to:', newYear)
-      console.log('Current expression:', store.esriExpression)
-      console.log('Current layer view:', store.currentMapLayerView)
-    }
-)
-
-watch(
-    () => store.esriExpression,
-    (newExpression) => {
-      console.log('esriExpression changed:', newExpression)
-      if (newExpression) {
-        // updateMapLayerExpression(newExpression)
-      }
-    }
-)
 </script>
 
 <style scoped>
+.years-overlay {
+  position: fixed;
+  top: 80px;
+  left: 60%;
+  transform: translateX(-60%);
+  z-index: 50;
+  pointer-events: none;
+}
+/*.years-overlay {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  pointer-events: none;
+}*/
 
+.years-container {
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  padding: 8px 16px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.years-group {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: 90vw;
+  padding: 0 !important;
+}
+
+.years-group :deep(.v-chip) {
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .years-overlay {
+    top: 70px;
+  }
+
+  .years-container {
+    padding: 6px 12px;
+  }
+
+  .years-group {
+    max-width: 95vw;
+  }
+}
 </style>

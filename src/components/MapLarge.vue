@@ -1,9 +1,11 @@
 <template>
   <div class="map-container">
+    <MapDates />
     <div id="mapViewer" class="mapdiv"></div>
-    <div id="testButtonDiv" style="min-width: 250px;min-height: 40px;background-color: black !important;">
+
+<!--    <div id="testButtonDiv" style="min-width: 250px;min-height: 40px;background-color: black !important;">
       <MapDates />
-    </div>
+    </div>-->
     <div id="testButtonDiv2">
       <InteractivePlot />
     </div>
@@ -354,13 +356,13 @@ onMounted(()=>{
 
   begView.ui.add(bkExpand, "bottom-left");
 
-  customExpand = new Expand({
+  /*customExpand = new Expand({
     view: begView,
     expanded: true,
     expandTooltip: 'Show View Options',
     content: document.getElementById('testButtonDiv')
   });
-  begView.ui.add(customExpand, 'top-right');
+  begView.ui.add(customExpand, 'top-right');*/
 
   customExpand2 = new Expand({
     view: begView,

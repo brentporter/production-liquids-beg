@@ -1,15 +1,15 @@
 <template>
   <div>
     <v-card
-        width="650px"
-        height="525px"
+        width="525px"
+        height="375px"
         elevation="3"
     >
       <div class="chart-wrapper">
         <VueApexCharts
             ref="charted"
-            width="635px"
-            height="465px"
+            width="500px"
+            height="350px"
             type="line"
             :options="chartOptions"
             :series="chartSeries"
