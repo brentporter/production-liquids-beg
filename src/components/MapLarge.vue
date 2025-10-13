@@ -167,7 +167,11 @@ const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
 
       // Format based on unit type
       let prevFormatted, currentFormatted, unit;
-      if (unitType === 'BBL' && mapStore.currentMapLayerView === 'countyProducedWaterTx') {
+      if (unitType === 'BBL' && (mapStore.currentMapLayerView === 'countyProducedWaterTx' || mapStore.currentMapLayerView === 'countyLiquidOilTx')) {
+        prevFormatted = (prevMax / 1000000).toFixed(1);
+        currentFormatted = (value / 1000000).toFixed(1);
+        unit = 'M BBL';
+      } else if (unitType === 'BBL' && mapStore.currentMapLayerView === 'countiesInjectionTx') {
         prevFormatted = (prevMax / 1000000).toFixed(1);
         currentFormatted = (value / 1000000).toFixed(1);
         unit = 'M BBL';
@@ -219,22 +223,30 @@ async function updateMapLayerExpression(newExpression) {
     ]
     unitType = 'BBL';
   } else if (mapStore.currentMapLayerView === 'countyProducedWaterTx') {
+    let colorArrayOld = ['#CCCCCC',
+      '#CCEBC5', '#A8DDB5',
+      '#7BCCC4', '#4EB3D3',
+      '#2B8CBE', '#08589E'];
+    colorArray = ['#CCCCCC',
+      '#DAD7A4', '#C6BC8F',
+      '#B3A37A', '#9E8A65',
+      '#8A7151', '#785A3E'];
+    unitType = 'BBL';
+  } else if (mapStore.currentMapLayerView === 'countiesHFTx') {
+    let colorArrayOld = ['#CCCCCC',
+      '#FFEBAF', '#C5FF00',
+      '#FFFF00', '#FFAA00',
+      '#FF6600', '#FF0000'];
     colorArray = ['#CCCCCC',
       '#CCEBC5', '#A8DDB5',
       '#7BCCC4', '#4EB3D3',
       '#2B8CBE', '#08589E'];
-    unitType = 'BBL';
-  } else if (mapStore.currentMapLayerView === 'countiesHFTx') {
-    colorArray = ['#CCCCCC',
-      '#FFEBAF', '#C5FF00',
-      '#FFFF00', '#FFAA00',
-      '#FF6600', '#FF0000'];
     unitType = 'GAL';
   } else if (mapStore.currentMapLayerView === 'countiesInjectionTx') {
-    colorArray = ['#CCCCCC',
-      '#92F4EB', '#00A7DF',
-      '#658FF8', '#5804F5',
-      '#BA0EF4', '#FC20F5'];
+    colorArray = ["#CCCCCC",
+      "#FDD0A2", "#FDAE6B",
+      "#FD8D3C", "#F16913",
+      "#D94801", "#8C2D04"];
     unitType = 'BBL';
   }
 
