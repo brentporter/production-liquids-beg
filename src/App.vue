@@ -126,7 +126,7 @@ const sidebarOpen = ref(true)
 }
 
 .sidebar.open ~ .content .esri-ui-top-left {
-  left: 300px !important;
+  left: 275px !important;
 }
 
 /*.esri-ui-bottom-left {
@@ -140,7 +140,7 @@ const sidebarOpen = ref(true)
 }
 
 .sidebar.open ~ .content .esri-ui-bottom-left {
-  left: 300px !important;
+  left: 275px !important;
 }
 
 .esri-ui-top-right {
