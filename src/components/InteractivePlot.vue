@@ -1,20 +1,21 @@
 <template>
-  <v-card
-      max-width="650"
-      min-width="650"
-      height="525"
-      elevation="3"
-  >
-    <div class="ml-2 mt-2">
-      <VueApexCharts
-          ref="charted"
-          width="635px"
-          height="465px"
-          type="line"
-          :options="chartOptions"
-          :series="chartSeries"
-      />
-    </div>
+  <div>
+    <v-card
+        width="650px"
+        height="525px"
+        elevation="3"
+    >
+      <div class="chart-wrapper">
+        <VueApexCharts
+            ref="charted"
+            width="635px"
+            height="465px"
+            type="line"
+            :options="chartOptions"
+            :series="chartSeries"
+        />
+      </div>
+    </v-card>
     <v-snackbar
         v-model="showWarning"
         :timeout="3000"
@@ -28,27 +29,22 @@
         </v-btn>
       </template>
     </v-snackbar>
-  </v-card>
+  </div>
 </template>
 
 <script setup>
 import VueApexCharts from 'vue3-apexcharts'
-import { ref, watch, computed, onMounted } from 'vue'
+import { ref, watch, computed, onMounted, nextTick } from 'vue'
 import { firstCapital, numberWithCommas } from '@/scripts/utility.js'
 import { useMapStore } from '../stores/mapStore.js'
 import { useDataStore } from '../stores/dataStore.js'
-import {
-  masterDataLoader,
-  masterHFDataLoader,
-  masterInjectDataLoader
-} from '@/scripts/gather-data-production.js'
 
 const mapStore = useMapStore()
 const dataStore = useDataStore()
 const charted = ref(null)
 const showWarning = ref(false)
 
-// Chart data
+// Single series - only one product at a time
 const chartSeries = ref([
   {
     name: 'Gas Production',
@@ -78,10 +74,10 @@ const chartOptions = ref({
     showForSingleSeries: true
   },
   stroke: {
-    curve: ['monotoneCubic', 'monotoneCubic', 'monotoneCubic'],
+    curve: 'monotoneCubic',
     width: 4
   },
-  colors: ['#ff0000', '#4f67e1', 'rgba(82,192,201,0.55)'],
+  colors: ['#ff0000'],
   xaxis: {
     categories: ['2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025'],
     labels: {
@@ -93,39 +89,21 @@ const chartOptions = ref({
       tickPlacement: 'between'
     }
   },
-  yaxis: [
-    {
-      showAlways: true,
-      axisBorder: {
-        show: true,
-        color: '#ffffff',
-        offsetX: 0,
-        offsetY: 0
-      },
-      title: {
-        text: '(mcf)'
-      },
-      labels: {
-        formatter: (val) => numberWithCommas(val)
-      }
+  yaxis: {
+    showAlways: true,
+    axisBorder: {
+      show: true,
+      color: '#ffffff',
+      offsetX: 0,
+      offsetY: 0
     },
-    {
-      opposite: true,
-      axisTicks: { show: true },
-      axisBorder: {
-        show: true,
-        color: '#247BA0'
-      },
-      labels: {
-        style: { colors: '#247BA0' },
-        formatter: (val) => numberWithCommas(val)
-      },
-      title: {
-        text: '(BBL)',
-        style: { color: '#247BA0' }
-      }
+    title: {
+      text: '(mcf)'
+    },
+    labels: {
+      formatter: (val) => numberWithCommas(val)
     }
-  ],
+  },
   title: {
     text: 'Texas Well Production',
     align: 'left',
@@ -141,178 +119,195 @@ const chartOptions = ref({
   },
   tooltip: {
     theme: 'dark',
-    shared: true,
+    shared: false,
     x: { format: 'yyyy' }
   }
 })
 
-// Helper functions
-function createSeriesData(results, seriesName, seriesKey) {
-  const values = results.map(row => parseInt(row[seriesKey]))
-  return {
-    name: seriesName,
-    data: values
+// Computed properties for current display
+const currentYAxisTitle = computed(() => {
+  if (mapStore.dataMode === 'production') {
+    if (mapStore.selectedProduction === 'Gas') return '(mcf)'
+    if (mapStore.selectedProduction === 'Liquid Oil') return '(BBL)'
+    if (mapStore.selectedProduction === 'Produced Water') return '(BBL)'
+  } else if (mapStore.selectedInjection === 'HF Fluid') {
+    return '(gal)'
+  } else {
+    return '(BBL)'
   }
-}
+})
 
-function combineProductionData(gasArray, liquidArray, waterArray) {
-  const yearMap = {}
-
-  gasArray.forEach(item => {
-    if (!yearMap[item.year]) yearMap[item.year] = { Year: item.year }
-    yearMap[item.year].Gas_Produced_MCF = item.value
-  })
-
-  liquidArray.forEach(item => {
-    if (!yearMap[item.year]) yearMap[item.year] = { Year: item.year }
-    yearMap[item.year].Liquid_Produced_BBL = item.value
-  })
-
-  waterArray.forEach(item => {
-    if (!yearMap[item.year]) yearMap[item.year] = { Year: item.year }
-    yearMap[item.year].Water_Produced_BBL = item.value
-  })
-
-  return Object.values(yearMap).sort((a, b) => parseInt(a.Year) - parseInt(b.Year))
-}
-
-function updateChartTitle(text) {
-  chartOptions.value.title.text = text
-}
-
-function updateYAxisTitle(axisIndex, title) {
-  if (chartOptions.value.yaxis[axisIndex]) {
-    chartOptions.value.yaxis[axisIndex].title.text = title
-  }
-}
-
-function resetAxisScales() {
-  chartOptions.value.yaxis.forEach((axis, index) => {
-    chartOptions.value.yaxis[index] = {
-      ...axis,
-      min: undefined,
-      max: undefined,
-      tickAmount: undefined,
-      forceNiceScale: true
-    }
-  })
-
-  if (charted.value) {
-    try {
-      charted.value.updateOptions({ yaxis: chartOptions.value.yaxis })
-    } catch (error) {
-      console.warn('Chart update warning:', error)
-    }
-  }
+// Helper to extract values from data
+function extractValues(data, key) {
+  return data.map(row => parseInt(row[key]) || 0)
 }
 
 // Main data loading function
-async function loadChartData(focusLevel, dataType) {
+async function loadChartData() {
   try {
-    if (focusLevel === 'statewide') {
-      const txData = await dataStore.statewideData
-      console.log(txData);
-
-      if (!txData) {
-        console.error('Statewide data not available')
+    if (mapStore.mapFocus === 'State') {
+      await loadStatewideData()
+    } else if (mapStore.mapFocus === 'County') {
+      if (!mapStore.selectedCounty) {
+        showWarning.value = true
         return
       }
-
-      const gasResults = txData.map(({ Year, Gas_Produced_MCF }) => ({ Year, Gas_Produced_MCF }))
-      const liquidResults = txData.map(({ Year, Liquid_Produced_BBL }) => ({ Year, Liquid_Produced_BBL }))
-      const waterResults = txData.map(({ Year, Water_Produced_BBL }) => ({ Year, Water_Produced_BBL }))
-
-      chartSeries.value = [
-        createSeriesData(gasResults, 'Gas Produced (mcf)', 'Gas_Produced_MCF'),
-        createSeriesData(waterResults, 'Water Produced (BBL)', 'Water_Produced_BBL'),
-        createSeriesData(liquidResults, 'Liquid Produced (BBL)', 'Liquid_Produced_BBL')
-      ]
-
-      updateChartTitle('Texas-wide Well Production')
-      updateYAxisTitle(0, '(mcf)')
-
-      setTimeout(resetAxisScales, 100)
-    } else if (focusLevel === 'county' && mapStore.selectedCounty) {
-      if (dataType === 'production') {
-        const countyData = dataStore.masterData[mapStore.selectedCounty.toUpperCase()]
-
-        if (!countyData) {
-          console.error('County data not found')
-          return
-        }
-
-        const tableData = combineProductionData(
-            countyData.gas_produced,
-            countyData.liquid_produced,
-            countyData.water_produced
-        )
-
-        chartSeries.value = [
-          createSeriesData(tableData, 'Gas Produced (mcf)', 'Gas_Produced_MCF'),
-          createSeriesData(tableData, 'Water Produced (BBL)', 'Water_Produced_BBL'),
-          createSeriesData(tableData, 'Liquid Produced (BBL)', 'Liquid_Produced_BBL')
-        ]
-
-        updateChartTitle(`${firstCapital(mapStore.selectedCounty)} Well Production`)
-        updateYAxisTitle(0, '(mcf)')
-
-        setTimeout(resetAxisScales, 100)
-      } else if (dataType === 'hf_fluid') {
-        const hfData = dataStore.hfFluidData.find(
-            hf => hf.COUNTY === mapStore.selectedCounty.toUpperCase()
-        )
-
-        if (hfData) {
-          const hfMapped = Object.keys(hfData)
-              .filter(key => key !== 'COUNTY')
-              .sort()
-              .map(year => ({
-                Year: parseInt(year),
-                HF_Fluid_Volume: hfData[year]
-              }))
-
-          chartSeries.value = [createSeriesData(hfMapped, 'HF Fluid Volume (GAL)', 'HF_Fluid_Volume')]
-
-          // Single axis for HF
-          chartOptions.value.yaxis = [chartOptions.value.yaxis[0]]
-          updateChartTitle(`${firstCapital(mapStore.selectedCounty)} HF Fluid`)
-          updateYAxisTitle(0, '(gal)')
-
-          setTimeout(resetAxisScales, 100)
-        }
-      } else if (dataType === 'injection') {
-        const injectionData = dataStore.injectionData.find(
-            inj => inj.County === mapStore.selectedCounty.toUpperCase()
-        )
-
-        if (injectionData) {
-          const injectionMapped = Object.keys(injectionData)
-              .filter(key => key !== 'County')
-              .sort()
-              .map(year => ({
-                Year: parseInt(year),
-                Injections: injectionData[year]
-              }))
-
-          chartSeries.value = [createSeriesData(injectionMapped, 'Injections (BBL)', 'Injections')]
-
-          // Single axis for injection
-          chartOptions.value.yaxis = [chartOptions.value.yaxis[0]]
-          updateChartTitle(`${firstCapital(mapStore.selectedCounty)} Injection`)
-          updateYAxisTitle(0, '(barrels)')
-
-          setTimeout(resetAxisScales, 100)
-        }
-      }
-    } else if (!mapStore.selectedCounty && focusLevel !== 'statewide') {
-      showWarning.value = true
+      await loadCountyData()
     }
   } catch (error) {
     console.error('Error loading chart data:', error)
   }
 }
 
-// Watchers
+async function loadStatewideData() {
+  const txData = dataStore.statewideData
+
+  if (!txData || !Array.isArray(txData)) {
+    console.error('Statewide data not available')
+    return
+  }
+
+  let values = []
+  let seriesName = ''
+
+  if (mapStore.dataMode === 'production') {
+    if (mapStore.selectedProduction === 'Gas') {
+      values = extractValues(txData, 'Gas_Produced_MCF')
+      seriesName = 'Gas Production'
+    } else if (mapStore.selectedProduction === 'Liquid Oil') {
+      values = extractValues(txData, 'Liquid_Produced_BBL')
+      seriesName = 'Liquid Oil Production'
+    } else if (mapStore.selectedProduction === 'Produced Water') {
+      values = extractValues(txData, 'Water_Produced_BBL')
+      seriesName = 'Produced Water'
+    }
+  } else if (mapStore.dataMode === 'injection') {
+    console.log('Statewide injection data - awaiting aggregated CSV')
+    return
+  }
+
+  chartSeries.value = [
+    {
+      name: seriesName,
+      data: values
+    }
+  ]
+
+  chartOptions.value.title.text = `Texas-wide ${seriesName}`
+  chartOptions.value.yaxis.title.text = currentYAxisTitle.value
+
+  await nextTick()
+  setTimeout(() => {
+    if (charted.value?.updateOptions) {
+      charted.value.updateOptions({
+        title: chartOptions.value.title,
+        yaxis: chartOptions.value.yaxis
+      })
+    }
+  }, 50)
+}
+
+async function loadCountyData() {
+  const countyName = mapStore.selectedCounty.toUpperCase()
+
+  if (mapStore.dataMode === 'production') {
+    const countyData = dataStore.masterData[countyName]
+
+    if (!countyData) {
+      console.error('County data not found:', countyName)
+      return
+    }
+
+    let values = []
+    let seriesName = ''
+
+    if (mapStore.selectedProduction === 'Gas') {
+      values = extractValues(countyData.gas_produced, 'value')
+      seriesName = 'Gas Production'
+    } else if (mapStore.selectedProduction === 'Liquid Oil') {
+      values = extractValues(countyData.liquid_produced, 'value')
+      seriesName = 'Liquid Oil Production'
+    } else if (mapStore.selectedProduction === 'Produced Water') {
+      values = extractValues(countyData.water_produced, 'value')
+      seriesName = 'Produced Water'
+    }
+
+    chartSeries.value = [
+      {
+        name: seriesName,
+        data: values
+      }
+    ]
+
+    chartOptions.value.title.text = `${firstCapital(mapStore.selectedCounty)} ${seriesName}`
+    chartOptions.value.yaxis.title.text = currentYAxisTitle.value
+
+    await nextTick()
+    setTimeout(() => {
+      if (charted.value?.updateOptions) {
+        charted.value.updateOptions({
+          title: chartOptions.value.title,
+          yaxis: chartOptions.value.yaxis
+        })
+      }
+    }, 50)
+  } else if (mapStore.dataMode === 'injection') {
+    let values = []
+    let seriesName = ''
+
+    if (mapStore.selectedInjection === 'HF Fluid') {
+      const hfData = dataStore.hfFluidData.find(hf => hf.COUNTY === countyName)
+
+      if (!hfData) {
+        console.error('HF Fluid data not found for:', countyName)
+        return
+      }
+
+      values = Object.keys(hfData)
+          .filter(key => key !== 'COUNTY')
+          .sort()
+          .map(year => parseInt(hfData[year]) || 0)
+
+      seriesName = 'HF Fluid'
+    } else if (mapStore.selectedInjection === 'Salt Water Disposal') {
+      const injectionData = dataStore.injectionData.find(inj => inj.County === countyName)
+
+      if (!injectionData) {
+        console.error('Injection data not found for:', countyName)
+        return
+      }
+
+      values = Object.keys(injectionData)
+          .filter(key => key !== 'County')
+          .sort()
+          .map(year => parseInt(injectionData[year]) || 0)
+
+      seriesName = 'Salt Water Disposal'
+    }
+
+    chartSeries.value = [
+      {
+        name: seriesName,
+        data: values
+      }
+    ]
+
+    chartOptions.value.title.text = `${firstCapital(mapStore.selectedCounty)} ${seriesName}`
+    chartOptions.value.yaxis.title.text = currentYAxisTitle.value
+
+    await nextTick()
+    setTimeout(() => {
+      if (charted.value?.updateOptions) {
+        charted.value.updateOptions({
+          title: chartOptions.value.title,
+          yaxis: chartOptions.value.yaxis
+        })
+      }
+    }, 50)
+  }
+}
+
+// Main watcher - reacts to any change in selections
 watch(
     [
       () => mapStore.mapFocus,
@@ -322,18 +317,8 @@ watch(
       () => mapStore.selectedCounty,
       () => mapStore.selectedProductionYear
     ],
-    ([focus, mode, production, injection, county]) => {
-      if (focus === 'State') {
-        loadChartData('statewide')
-      } else if (focus === 'County') {
-        if (!county) {
-          showWarning.value = true
-          return
-        }
-
-        const dataType = mode === 'production' ? 'production' : injection === 'HF Fluid' ? 'hf_fluid' : 'injection'
-        loadChartData('county', dataType)
-      }
+    async () => {
+      await loadChartData()
     }
 )
 
@@ -343,13 +328,42 @@ onMounted(async () => {
     await dataStore.loadCSVData()
   }
 
-  if (mapStore.selectedCounty) {
-    const dataType = mapStore.dataMode === 'production' ? 'production' : 'hf_fluid'
-    await loadChartData('county', dataType)
-  } else {
-    await loadChartData('statewide')
-  }
+  await loadChartData()
 })
 </script>
 
-<style scoped></style>
+<style scoped>
+.chart-controls {
+  margin-bottom: 8px;
+  display: flex;
+  gap: 8px;
+  position: relative;
+  z-index: 1001;
+}
+
+.chart-wrapper {
+  background-color: black;
+  padding: 12px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+.v-card {
+  transition: all 0.3s ease;
+}
+
+.v-card.expanded {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-height: 95vh;
+  max-width: 95vw;
+  overflow: hidden;
+}
+</style>

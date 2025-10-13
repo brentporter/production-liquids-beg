@@ -144,7 +144,12 @@ const sidebarOpen = ref(true)
 }
 
 .esri-ui-top-right {
-  top: 3.75rem !important;
+  top: 1.75rem !important;
+  right: 0.25rem !important;
+}
+
+.esri-ui-bottom-right {
+  bottom: 1.75rem !important;
   right: 0.25rem !important;
 }
 
