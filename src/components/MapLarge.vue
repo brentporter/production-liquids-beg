@@ -46,6 +46,7 @@ import {createClassBreaksRenderer} from "@arcgis/core/smartMapping/renderers/siz
 import {ClassBreaksRenderer} from "@arcgis/core/renderers.js";
 import {SimpleFillSymbol} from "@arcgis/core/symbols.js";
 import InteractivePlot from "@/components/InteractivePlot.vue";
+import Color from "@arcgis/core/Color.js";
 const isInitializing = ref(true)
 let begMap,begView,countyBoundariesTx,
     countiesHFTx,countyProducedWaterTx,customExpand,
@@ -53,7 +54,22 @@ let begMap,begView,countyBoundariesTx,
     layerMap;
 
 const mapStore = useMapStore();
-const dataStore = useDataStore()
+const dataStore = useDataStore();
+
+//let highlightHandle = null
+let highlightHandle = null
+let highlights = [];
+
+watch(
+    () => mapStore.mapFocus,
+    (newFocus) => {
+      if (newFocus === 'State' && highlightHandle) {
+        highlights.forEach((h) =>{
+          h.remove();
+        });
+      }
+    }
+)
 
 // Watch for changes to trigger map updates
 watch(
@@ -337,6 +353,13 @@ onMounted(()=>{
     container: "mapViewer",
     map: begMap,
     center: initialView.center,
+    highlights: [
+      { name: "default", color: "magenta",fillOpacity: 0.3  },
+      { name: "temporary", color: "magenta" },
+/*
+      { name: "oaks", color: "forestgreen", haloOpacity: 0.8, fillOpacity: 0.3 }
+*/
+    ],
     popup: {
       dockEnabled: true,
       dockOptions: {
@@ -455,7 +478,33 @@ onMounted(()=>{
   };
   begMap.add(countyBoundariesTx)
 
+
   begView.on("click", (event) => {
+    begView.hitTest(event).then((response) => {
+      const result = response.results[0]
+      if (result?.graphic) {
+        let tmpCountyClicked = result.graphic.attributes.CNTY_NM
+        mapStore.setSelectedCounty(tmpCountyClicked)
+        mapStore.setMapFocus('County')
+
+        // Get the layerView from the layer
+        const layer = result.layer
+        //highlight = layerView.highlight(result.features, {name: "temporary"});
+        //hightlights.push(highlight);
+        begView.whenLayerView(layer).then((layerView) => {
+          if (highlightHandle) {
+            highlights.forEach((h) =>{
+              h.remove();
+            });
+          }
+
+          highlightHandle = layerView.highlight(result.graphic,"default")
+          highlights.push(highlightHandle);
+        })
+      }
+    })
+  })
+  /*begView.on("click", (event) => {
     begView.hitTest(event).then((response) => {
       const countyFeature = response.results[0]?.graphic
       if (countyFeature) {
@@ -463,11 +512,9 @@ onMounted(()=>{
         let tmpCountyClicked = countyFeature.attributes.CNTY_NM.split(' County')[0]
         mapStore.setSelectedCounty(tmpCountyClicked)
         mapStore.setMapFocus('County')
-        //mapStore.selectCountyFromMap(tmpCountyClicked, mapId)
-        //mapStore.setAutocomplete(countyStore.selectedCounty.toLowerCase());
-      }
+        }
     })
-  })
+  })*/
 
 })
 </script>
