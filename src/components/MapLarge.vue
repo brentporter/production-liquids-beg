@@ -59,7 +59,39 @@ const dataStore = useDataStore();
 //let highlightHandle = null
 let highlightHandle = null
 let highlights = [];
+let selectedGraphic = null
 
+watch(
+    () => mapStore.mapFocus,
+    (newFocus) => {
+      if (newFocus === 'State' && highlightHandle) {
+        highlights.forEach((h) => {
+          h.remove()
+        })
+        highlightHandle = null
+        selectedGraphic = null
+      } else if (newFocus === 'County' && selectedGraphic) {
+        // Get the actual layer object from the map by ID
+        console.log('Re-highlighting graphic')
+        const layerId = mapStore.currentMapLayerView
+        const layer = begMap.findLayerById(layerId)
+
+        if (layer) {
+          begView.whenLayerView(layer).then((layerView) => {
+            if (highlightHandle) {
+              highlights.forEach((h) => h.remove())
+            }
+
+            highlightHandle = layerView.highlight(selectedGraphic, "default")
+            highlights.push(highlightHandle)
+          }).catch((err) => {
+            console.warn('Layer view not yet available:', err)
+          })
+        }
+      }
+    }
+)
+/*
 watch(
     () => mapStore.mapFocus,
     (newFocus) => {
@@ -70,6 +102,7 @@ watch(
       }
     }
 )
+*/
 
 // Watch for changes to trigger map updates
 watch(
@@ -84,7 +117,8 @@ watch(
         console.log('Data not loaded yet')
         return
       }
-
+      // Store the current highlight before removing layers
+      const wasHighlighted = highlightHandle !== null
       // Get statewide data for the selected type
       const data = dataStore.getDataByFocus(newFocus,
           newMode === 'production' ? 'production' :
@@ -99,21 +133,42 @@ watch(
       begMap.remove(layerMap['countiesInjectionTx'])
 
       // Add the correct layer
+      // Add the correct layer
+      let newLayerId = ''
       if (newMode === 'production' && newProduction === 'Gas') {
-        mapStore.setCurrentMapLayerView('countyBoundariesTx')
-        begMap.add(layerMap['countyBoundariesTx'])
+        newLayerId = 'countyBoundariesTx'
+        mapStore.setCurrentMapLayerView(newLayerId)
+        begMap.add(layerMap[newLayerId])
       } else if (newMode === 'production' && newProduction === 'Liquid Oil') {
-        mapStore.setCurrentMapLayerView('countyLiquidOilTx')
-        begMap.add(layerMap['countyLiquidOilTx'])
+        newLayerId = 'countyLiquidOilTx'
+        mapStore.setCurrentMapLayerView(newLayerId)
+        begMap.add(layerMap[newLayerId])
       } else if(newMode === 'production' && newProduction === 'Produced Water'){
-        mapStore.setCurrentMapLayerView('countyProducedWaterTx')
-        begMap.add(layerMap['countyProducedWaterTx'])
+        newLayerId = 'countyProducedWaterTx'
+        mapStore.setCurrentMapLayerView(newLayerId)
+        begMap.add(layerMap[newLayerId])
       } else if (newMode === 'injection' && newInjection === 'HF Fluid') {
-        mapStore.setCurrentMapLayerView('countiesHFTx')
-        begMap.add(layerMap['countiesHFTx'])
+        newLayerId = 'countiesHFTx'
+        mapStore.setCurrentMapLayerView(newLayerId)
+        begMap.add(layerMap[newLayerId])
       } else if (newMode === 'injection' && newInjection === 'Salt Water Disposal') {
-        mapStore.setCurrentMapLayerView('countiesInjectionTx')
-        begMap.add(layerMap['countiesInjectionTx'])
+        newLayerId = 'countiesInjectionTx'
+        mapStore.setCurrentMapLayerView(newLayerId)
+        begMap.add(layerMap[newLayerId])
+      }
+      // Re-highlight on the new layer if there was a highlight before
+      if (wasHighlighted && selectedGraphic && newLayerId) {
+        const layer = begMap.findLayerById(newLayerId)
+        if (layer) {
+          begView.whenLayerView(layer).then((layerView) => {
+            if (highlightHandle) {
+              highlights.forEach((h) => h.remove())
+            }
+
+            highlightHandle = layerView.highlight(selectedGraphic, "default")
+            highlights.push(highlightHandle)
+          })
+        }
       }
     }
 )
@@ -478,8 +533,30 @@ onMounted(()=>{
   };
   begMap.add(countyBoundariesTx)
 
-
   begView.on("click", (event) => {
+    begView.hitTest(event).then((response) => {
+      const result = response.results[0]
+      if (result?.graphic) {
+        let tmpCountyClicked = result.graphic.attributes.CNTY_NM
+        mapStore.setSelectedCounty(tmpCountyClicked)
+        mapStore.setMapFocus('County')
+
+        selectedGraphic = result.graphic
+
+        const layer = result.layer
+        begView.whenLayerView(layer).then((layerView) => {
+          if (highlightHandle) {
+            highlights.forEach((h) => h.remove())
+          }
+
+          highlightHandle = layerView.highlight(selectedGraphic, "default")
+          highlights.push(highlightHandle)
+          begView.goTo(selectedGraphic.geometry.extent.expand(2.5))
+        })
+      }
+    })
+  })
+/*  begView.on("click", (event) => {
     begView.hitTest(event).then((response) => {
       const result = response.results[0]
       if (result?.graphic) {
@@ -500,10 +577,14 @@ onMounted(()=>{
 
           highlightHandle = layerView.highlight(result.graphic,"default")
           highlights.push(highlightHandle);
+          //begView.goTo(result.graphic.geometry.extent.extent);
+          const ext = result.graphic.geometry.extent
+          const expanded = ext.expand(2.5)
+          begView.goTo(expanded);
         })
       }
     })
-  })
+  })*/
   /*begView.on("click", (event) => {
     begView.hitTest(event).then((response) => {
       const countyFeature = response.results[0]?.graphic
