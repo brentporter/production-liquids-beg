@@ -57,14 +57,21 @@ const mapStore = useMapStore();
 const dataStore = useDataStore();
 
 //let highlightHandle = null
-let highlightHandle = null
+let highlightHandle = null;
 let highlights = [];
-let selectedGraphic = null
+let selectedGraphic = null;
+let initialView;
 
 watch(
     () => mapStore.mapFocus,
     (newFocus) => {
-      if (newFocus === 'State' && highlightHandle) {
+      if (newFocus === 'State') {
+        begView.goTo({
+          center: initialView.center,
+          zoom: initialView.zoom
+        }, {
+          duration: 1000 // milliseconds
+        })
         highlights.forEach((h) => {
           h.remove()
         })
@@ -392,7 +399,7 @@ async function updateMapLayerExpression(newExpression) {
 
 onMounted(()=>{
 
-  const initialView = mapStore.mapZoom > 0
+  initialView = mapStore.mapZoom > 0
       ? { center: mapStore.mapCenter, zoom: mapStore.mapZoom }
       : { center: [-94.75, 30.75], zoom: 6 }
 
@@ -439,8 +446,8 @@ onMounted(()=>{
     view: begView,
     viewpoint: new Viewpoint({
       center: new Point({
-        longitude: -98,
-        latitude: 30.75
+        longitude: -96.5,
+        latitude: 32
       }),
       zoom:5 // Adjust scale as needed
     })
