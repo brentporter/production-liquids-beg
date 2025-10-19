@@ -15,7 +15,8 @@ export const useMapStore = defineStore('map', () => {
         '2019','2020','2021','2022','2023','2024','2025']
     let selectedProductionYear = ref('2010');
     const currentMapLayerView = ref('countyBoundariesTx')
-    const selectedCounty = ref(null)
+    const selectedCounty = ref(null);
+    const selectedBasin = ref(null)
 
     const typeMapping = {
         'Liquid Oil': 'Liquid_Produced_BBL',
@@ -65,6 +66,10 @@ export const useMapStore = defineStore('map', () => {
 
     // Actions
 
+    function setSelectedBasin(basin){
+        selectedBasin.value = basin;
+    }
+
     function setSelectedCounty(county) {
         selectedCounty.value = county
     }
@@ -110,6 +115,7 @@ export const useMapStore = defineStore('map', () => {
         selectedProductionYear,
         selectedInjection,
         selectedCounty,
+        selectedBasin,
         mapCenter,
         mapZoom,
         mapFocusOptions,
@@ -125,6 +131,7 @@ export const useMapStore = defineStore('map', () => {
         setSelectedProductionYear,
         setCurrentMapLayerView,
         setSelectedCounty,
+        setSelectedBasin,
         setMapCenter,
         setMapZoom
     }
