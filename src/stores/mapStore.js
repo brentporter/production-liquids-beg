@@ -41,6 +41,9 @@ export const useMapStore = defineStore('map', () => {
         } else if (currentMapLayerView.value === 'countyProducedWaterTx') {
             const fieldName = `${typeMapping[selectedProduction.value]}_${selectedProductionYear.value}`
             return fieldName
+        } else if (currentMapLayerView.value === 'basinsInjectionTx') {
+            const fieldName = `${typeMapping[selectedProduction.value]}_${selectedProductionYear.value}`
+            return fieldName
         }
         return null
     })

@@ -51,7 +51,7 @@ const isInitializing = ref(true)
 let begMap,begView,countyBoundariesTx,
     countiesHFTx,countyProducedWaterTx,customExpand,
     customExpand2,countyLiquidOilTx,countiesInjectionTx,
-    layerMap;
+    basinsInjectionTx, layerMap;
 
 const mapStore = useMapStore();
 const dataStore = useDataStore();
@@ -60,6 +60,7 @@ const dataStore = useDataStore();
 let highlightHandle = null;
 let highlights = [];
 let selectedGraphic = null;
+let selectedBasinGraphic = null;
 let initialView;
 
 watch(
@@ -77,7 +78,8 @@ watch(
         })
         highlightHandle = null
         selectedGraphic = null
-      } else if (newFocus === 'County' && selectedGraphic) {
+      }
+      else if (newFocus === 'County' && selectedGraphic) {
         // Get the actual layer object from the map by ID
         console.log('Re-highlighting graphic')
         const layerId = mapStore.currentMapLayerView
@@ -96,7 +98,23 @@ watch(
           })
         }
       }
+      else if (newFocus === 'Basin'){
+        begView.goTo({
+          center: initialView.center,
+          zoom: initialView.zoom
+        }, {
+          duration: 1000 // milliseconds
+        })
+        highlights.forEach((h) => {
+          h.remove()
+        })
+        highlightHandle = null
+        selectedGraphic = null
+        const layerId = mapStore.currentMapLayerView
+        const layer = begMap.findLayerById(layerId)
+      }
     }
+
 )
 /*
 watch(
@@ -530,13 +548,22 @@ onMounted(()=>{
     outFields:["*"],
     id:"countiesInjectionTx",
   })
+  //https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Basins_Data/FeatureServer
+  basinsInjectionTx = new FeatureLayer({
+    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Basins_Data/FeatureServer/0',
+    opacity:0.75,
+    setAutoGeneralize:true,
+    outFields:["*"],
+    id:"basinsInjectionTx",
+  })
 
   layerMap = {
     'countyBoundariesTx': countyBoundariesTx,
     'countyLiquidOilTx':countyLiquidOilTx,
     'countyProducedWaterTx':countyProducedWaterTx,
     'countiesHFTx': countiesHFTx,
-    'countiesInjectionTx': countiesInjectionTx
+    'countiesInjectionTx': countiesInjectionTx,
+    'basinsInjectionTx':basinsInjectionTx
   };
   begMap.add(countyBoundariesTx)
 

@@ -184,6 +184,7 @@ export const useDataStore = defineStore('data', () => {
                 value: row.Salt_Water_Disposal_Million_BBL * 1000000 // Convert to BBL
             })
         })
+        console.log(basinData);
     }
 
     function getCountyData(county, dataType = 'production') {

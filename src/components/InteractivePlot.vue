@@ -168,10 +168,10 @@ async function loadChartData() {
       }
       await loadCountyData()
     } else if (mapStore.mapFocus === 'Basin'){
-      if (!mapStore.selectedBasin) {
+      /*if (!mapStore.selectedBasin) {
         showBasinWarning.value = true
         return
-      }
+      }*/
       await loadBasinData()
     }
   } catch (error) {
