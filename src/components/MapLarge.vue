@@ -461,7 +461,7 @@ onMounted(()=>{
   let bkExpand = new Expand({
     view: begView,
     content: legend,
-    expanded: false,
+    expanded: true,
     expandTooltip: 'Show Legend'
   });
 
@@ -558,7 +558,7 @@ onMounted(()=>{
 
           highlightHandle = layerView.highlight(selectedGraphic, "default")
           highlights.push(highlightHandle)
-          begView.goTo(selectedGraphic.geometry.extent.expand(2.5))
+          begView.goTo(selectedGraphic.geometry.extent.expand(4.5))
         })
       }
     })
