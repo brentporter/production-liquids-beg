@@ -21,6 +21,8 @@ export const allTexasProductionData = import.meta.env.VITE_AllTexas_Production_D
 *  What follows is a list of the countyCSVs for Texas
 * ****/
 export const allCountiesProductionData = import.meta.env.VITE_AllCounties_Production_Data2
+export const allBasinsProductionData = import.meta.env.VITE_AllBasins_Production_Data
+
 export const allCountiesInjectionData = import.meta.env.VITE_AllCounties_Injected_Data
 export const allCountiesHFData = import.meta.env.VITE_AllCounties_HF_Data
 

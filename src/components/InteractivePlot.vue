@@ -22,9 +22,22 @@
         location="center"
         color="orange-darken-4"
     >
-      Please select a county first either from the map or from the controls.
+      Please select a county first either from the map.
       <template v-slot:actions>
         <v-btn color="white" variant="text" @click="showWarning = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
+    <v-snackbar
+        v-model="showBasinWarning"
+        :timeout="3000"
+        location="center"
+        color="orange-darken-4"
+    >
+      Please select a basin first from the map.
+      <template v-slot:actions>
+        <v-btn color="white" variant="text" @click="showBasinWarning = false">
           Close
         </v-btn>
       </template>
@@ -43,6 +56,7 @@ const mapStore = useMapStore()
 const dataStore = useDataStore()
 const charted = ref(null)
 const showWarning = ref(false)
+const showBasinWarning = ref(false)
 
 // Single series - only one product at a time
 const chartSeries = ref([
@@ -157,6 +171,59 @@ async function loadChartData() {
   } catch (error) {
     console.error('Error loading chart data:', error)
   }
+}
+
+async function loadBasinData(){
+  const basinData = dataStore.basinData;
+
+  if (!basinData || !Array.isArray(basinData)) {
+    console.error('Basin data not available')
+    return
+  }
+
+  let values = []
+  let seriesName = ''
+
+  if (mapStore.dataMode === 'production') {
+    if (mapStore.selectedProduction === 'Gas') {
+      values = extractValues(basinData, 'Gas_Produced_MCF')
+      seriesName = 'Gas Production'
+    } else if (mapStore.selectedProduction === 'Liquid Oil') {
+      values = extractValues(basinData, 'Liquid_Produced_BBL')
+      seriesName = 'Liquid Oil Production'
+    } else if (mapStore.selectedProduction === 'Produced Water') {
+      values = extractValues(basinData, 'Water_Produced_BBL')
+      seriesName = 'Produced Water'
+    }
+  } else if (mapStore.dataMode === 'injection') {
+    if (mapStore.selectedInjection === 'HF Fluid') {
+      values = extractValues(basinData, 'HF_Water_GAL')
+      seriesName = 'HF Fluid'
+    } else if (mapStore.selectedInjection === 'Salt Water Disposal') {
+      values = extractValues(basinData, 'Salt_Water_Disposal_BBL')
+      seriesName = 'Salt Water Disposal'
+    }
+  }
+
+  chartSeries.value = [
+    {
+      name: seriesName,
+      data: values
+    }
+  ]
+
+  chartOptions.value.title.text = `Basin-wide ${seriesName}`
+  chartOptions.value.yaxis.title.text = currentYAxisTitle.value
+
+  await nextTick()
+  setTimeout(() => {
+    if (charted.value?.updateOptions) {
+      charted.value.updateOptions({
+        title: chartOptions.value.title,
+        yaxis: chartOptions.value.yaxis
+      })
+    }
+  }, 50)
 }
 
 async function loadStatewideData() {

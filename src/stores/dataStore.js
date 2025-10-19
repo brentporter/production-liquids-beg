@@ -3,7 +3,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import {
     allCountiesProductionData,
-    allTexasProductionData
+    allTexasProductionData,
+    allBasinsProductionData
 } from '@/composables/secret'
 import Papa from 'papaparse'
 
@@ -16,6 +17,7 @@ export const useDataStore = defineStore('data', () => {
     const rawData = ref([])
     const countyData = ref({})
     const statewideData = ref([])
+    const basinData = ref({})
 
     // Computed
     const hasData = computed(() => isLoaded.value && !error.value)
@@ -30,15 +32,17 @@ export const useDataStore = defineStore('data', () => {
         error.value = null
 
         try {
-            // Load both CSV files in parallel
-            const [countyResponse, stateResponse] = await Promise.all([
+            // Load all CSV files in parallel
+            const [countyResponse, stateResponse, basinResponse] = await Promise.all([
                 fetch(allCountiesProductionData),
-                fetch(allTexasProductionData)
+                fetch(allTexasProductionData),
+                fetch(allBasinsProductionData)
             ])
 
-            const [countyCSV, stateCSV] = await Promise.all([
+            const [countyCSV, stateCSV, basinCSV] = await Promise.all([
                 countyResponse.text(),
-                stateResponse.text()
+                stateResponse.text(),
+                basinResponse.text()
             ])
 
             // Parse county-level CSV
@@ -57,11 +61,21 @@ export const useDataStore = defineStore('data', () => {
                 skipEmptyLines: true
             })
 
+            // Parse basin-level CSV
+            const basinParsed = Papa.parse(basinCSV, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true
+            })
+
             // Process data by county
             processCountyData()
 
-            // Use state-level data directly (don't aggregate from counties)
+            // Process state-level data
             processStatewideData(stateParsed.data)
+
+            // Process basin-level data
+            processBasinData(basinParsed.data)
 
             isLoaded.value = true
             console.log('All CSV data loaded successfully')
@@ -128,6 +142,50 @@ export const useDataStore = defineStore('data', () => {
         })).sort((a, b) => a.Year - b.Year)
     }
 
+    function processBasinData(basinDataRaw) {
+        basinData.value = {}
+
+        basinDataRaw.forEach(row => {
+            const basin = row.Basin.toUpperCase()
+
+            if (!basinData.value[basin]) {
+                basinData.value[basin] = {
+                    gas_produced: [],
+                    liquid_produced: [],
+                    water_produced: [],
+                    hf_fluid: [],
+                    injection: []
+                }
+            }
+
+            // Add data for each year
+            basinData.value[basin].gas_produced.push({
+                year: row.Year,
+                value: row.Gas_Produced_BCF * 1000 // Convert BCF to MCF
+            })
+
+            basinData.value[basin].liquid_produced.push({
+                year: row.Year,
+                value: row.Liquid_Produced_Million_BBL * 1000000 // Convert to BBL
+            })
+
+            basinData.value[basin].water_produced.push({
+                year: row.Year,
+                value: row.Water_Produced_Million_BBL * 1000000 // Convert to BBL
+            })
+
+            basinData.value[basin].hf_fluid.push({
+                year: row.Year,
+                value: row.HF_Water_Billion_GAL * 1000000000 // Convert to GAL
+            })
+
+            basinData.value[basin].injection.push({
+                year: row.Year,
+                value: row.Salt_Water_Disposal_Million_BBL * 1000000 // Convert to BBL
+            })
+        })
+    }
+
     function getCountyData(county, dataType = 'production') {
         if (!isLoaded.value) return null
 
@@ -155,6 +213,10 @@ export const useDataStore = defineStore('data', () => {
             return statewideData.value
         }
 
+        if (focus === 'Basin') {
+            return basinData.value
+        }
+
         // For county focus, return all county data
         return countyData.value
     }
@@ -166,6 +228,7 @@ export const useDataStore = defineStore('data', () => {
         rawData,
         countyData,
         statewideData,
+        basinData,
         hasData,
         loadCSVData,
         getDataByFocus,
