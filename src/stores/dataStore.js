@@ -84,8 +84,8 @@ export const useDataStore = defineStore('data', () => {
                     gas_produced: [],
                     liquid_produced: [],
                     water_produced: [],
-                    hf_water: [],
-                    salt_water_disposal: []
+                    hf_fluid: [],
+                    injection: []
                 }
             }
 
@@ -105,12 +105,12 @@ export const useDataStore = defineStore('data', () => {
                 value: row.Water_Produced_Million_BBL * 1000000 // Convert to BBL
             })
 
-            countyData.value[county].hf_water.push({
+            countyData.value[county].hf_fluid.push({
                 year: row.Year,
                 value: row.HF_Water_Billion_GAL * 1000000000 // Convert to GAL
             })
 
-            countyData.value[county].salt_water_disposal.push({
+            countyData.value[county].injection.push({
                 year: row.Year,
                 value: row.Salt_Water_Disposal_Million_BBL * 1000000 // Convert to BBL
             })

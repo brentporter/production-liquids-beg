@@ -182,8 +182,13 @@ async function loadStatewideData() {
       seriesName = 'Produced Water'
     }
   } else if (mapStore.dataMode === 'injection') {
-    console.log('Statewide injection data - awaiting aggregated CSV')
-    return
+    if (mapStore.selectedInjection === 'HF Fluid') {
+      values = extractValues(txData, 'HF_Water_GAL')
+      seriesName = 'HF Fluid'
+    } else if (mapStore.selectedInjection === 'Salt Water Disposal') {
+      values = extractValues(txData, 'Salt_Water_Disposal_BBL')
+      seriesName = 'Salt Water Disposal'
+    }
   }
 
   chartSeries.value = [
@@ -209,15 +214,14 @@ async function loadStatewideData() {
 
 async function loadCountyData() {
   const countyName = mapStore.selectedCounty.toUpperCase()
+  const countyData = dataStore.countyData[countyName]
+
+  if (!countyData) {
+    console.error('County data not found:', countyName)
+    return
+  }
 
   if (mapStore.dataMode === 'production') {
-    const countyData = dataStore.masterData[countyName]
-
-    if (!countyData) {
-      console.error('County data not found:', countyName)
-      return
-    }
-
     let values = []
     let seriesName = ''
 
@@ -256,32 +260,10 @@ async function loadCountyData() {
     let seriesName = ''
 
     if (mapStore.selectedInjection === 'HF Fluid') {
-      const hfData = dataStore.hfFluidData.find(hf => hf.COUNTY === countyName)
-
-      if (!hfData) {
-        console.error('HF Fluid data not found for:', countyName)
-        return
-      }
-
-      values = Object.keys(hfData)
-          .filter(key => key !== 'COUNTY')
-          .sort()
-          .map(year => parseInt(hfData[year]) || 0)
-
+      values = extractValues(countyData.hf_fluid, 'value')
       seriesName = 'HF Fluid'
     } else if (mapStore.selectedInjection === 'Salt Water Disposal') {
-      const injectionData = dataStore.injectionData.find(inj => inj.County === countyName)
-
-      if (!injectionData) {
-        console.error('Injection data not found for:', countyName)
-        return
-      }
-
-      values = Object.keys(injectionData)
-          .filter(key => key !== 'County')
-          .sort()
-          .map(year => parseInt(injectionData[year]) || 0)
-
+      values = extractValues(countyData.injection, 'value')
       seriesName = 'Salt Water Disposal'
     }
 
@@ -314,8 +296,7 @@ watch(
       () => mapStore.dataMode,
       () => mapStore.selectedProduction,
       () => mapStore.selectedInjection,
-      () => mapStore.selectedCounty,
-      () => mapStore.selectedProductionYear
+      () => mapStore.selectedCounty
     ],
     async () => {
       await loadChartData()
@@ -333,14 +314,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.chart-controls {
-  margin-bottom: 8px;
-  display: flex;
-  gap: 8px;
-  position: relative;
-  z-index: 1001;
-}
-
 .chart-wrapper {
   background-color: black;
   padding: 12px;
@@ -349,21 +322,5 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   overflow: auto;
-}
-
-.v-card {
-  transition: all 0.3s ease;
-}
-
-.v-card.expanded {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  max-height: 95vh;
-  max-width: 95vw;
-  overflow: hidden;
 }
 </style>
