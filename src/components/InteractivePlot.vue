@@ -167,6 +167,12 @@ async function loadChartData() {
         return
       }
       await loadCountyData()
+    } else if (mapStore.mapFocus === 'Basin'){
+      if (!mapStore.selectedBasin) {
+        showBasinWarning.value = true
+        return
+      }
+      await loadBasinData()
     }
   } catch (error) {
     console.error('Error loading chart data:', error)
