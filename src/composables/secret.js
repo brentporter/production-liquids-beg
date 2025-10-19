@@ -16,11 +16,11 @@ export const andrewsWaterData = import.meta.env.VITE_Andrews_Water_Data
 export const andrewsGasData = import.meta.env.VITE_Andrews_Gas_Data
 export const andrewsLiquidData = import.meta.env.VITE_Andrews_Liquid_Data
 
-export const allTexasProductionData = import.meta.env.VITE_AllTexas_Production_Data
+export const allTexasProductionData = import.meta.env.VITE_AllTexas_Production_Data2
 /*****
 *  What follows is a list of the countyCSVs for Texas
 * ****/
-export const allCountiesProductionData = import.meta.env.VITE_AllCounties_Production_Data
+export const allCountiesProductionData = import.meta.env.VITE_AllCounties_Production_Data2
 export const allCountiesInjectionData = import.meta.env.VITE_AllCounties_Injected_Data
 export const allCountiesHFData = import.meta.env.VITE_AllCounties_HF_Data
 
