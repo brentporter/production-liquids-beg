@@ -42,8 +42,23 @@ export const useMapStore = defineStore('map', () => {
             const fieldName = `${typeMapping[selectedProduction.value]}_${selectedProductionYear.value}`
             return fieldName
         } else if (currentMapLayerView.value === 'basinsInjectionTx') {
-            const fieldName = `${typeMapping[selectedProduction.value]}_${selectedProductionYear.value}`
-            return fieldName
+            // Basin layer - different field naming
+            if (dataMode.value === 'production') {
+                if (selectedProduction.value === 'Gas') {
+                    return `Gas_BCF_${selectedProductionYear.value}`
+                } else if (selectedProduction.value === 'Liquid Oil') {
+                    return `Liquid_Million_BBL_${selectedProductionYear.value}`
+                } else if (selectedProduction.value === 'Produced Water') {
+                    return `ProducedWater_Million_BBL_${selectedProductionYear.value}`
+                }
+            } else if (dataMode.value === 'injection') {
+                if (selectedInjection.value === 'HF Fluid') {
+                    return `HF_Water_Billion_Gal_${selectedProductionYear.value}`
+                } else if (selectedInjection.value === 'Salt Water Disposal') {
+                    console.log(selectedInjection.value)
+                    return `SaltWaterDisposal_Million_BBL_${selectedProductionYear.value}`
+                }
+            }
         }
         return null
     })

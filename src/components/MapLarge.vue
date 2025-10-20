@@ -3,29 +3,29 @@
     <MapDates />
     <div id="mapViewer" class="mapdiv"></div>
 
-<!--    <div id="testButtonDiv" style="min-width: 250px;min-height: 40px;background-color: black !important;">
-      <MapDates />
-    </div>-->
+    <!--    <div id="testButtonDiv" style="min-width: 250px;min-height: 40px;background-color: black !important;">
+          <MapDates />
+        </div>-->
     <div id="testButtonDiv2">
       <InteractivePlot />
     </div>
-<!--    v-if="mapLayerView === 'countyBoundariesTx'"
-<div class="map-placeholder">
-      <div class="placeholder-content">
-        <div class="map-icon">🗺️</div>
-        <p>ESRI Map View</p>
-        <p class="placeholder-text">
-          Map Focus: <strong>{{ mapStore.mapFocus }}</strong><br/>
-          Mode: <strong>{{ mapStore.dataMode }}</strong><br/>
-          <span v-if="mapStore.dataMode === 'production'">
-            Type: <strong>{{ mapStore.selectedProduction }}</strong>
-          </span>
-          <span v-else>
-            Type: <strong>{{ mapStore.selectedInjection }}</strong>
-          </span>
-        </p>
-      </div>
-    </div>-->
+    <!--    v-if="mapLayerView === 'countyBoundariesTx'"
+    <div class="map-placeholder">
+          <div class="placeholder-content">
+            <div class="map-icon">🗺️</div>
+            <p>ESRI Map View</p>
+            <p class="placeholder-text">
+              Map Focus: <strong>{{ mapStore.mapFocus }}</strong><br/>
+              Mode: <strong>{{ mapStore.dataMode }}</strong><br/>
+              <span v-if="mapStore.dataMode === 'production'">
+                Type: <strong>{{ mapStore.selectedProduction }}</strong>
+              </span>
+              <span v-else>
+                Type: <strong>{{ mapStore.selectedInjection }}</strong>
+              </span>
+            </p>
+          </div>
+        </div>-->
   </div>
 </template>
 
@@ -156,11 +156,17 @@ watch(
       begMap.remove(layerMap['countyProducedWaterTx'])
       begMap.remove(layerMap['countiesHFTx'])
       begMap.remove(layerMap['countiesInjectionTx'])
+      begMap.remove(layerMap['basinsInjectionTx'])
 
       // Add the correct layer
       // Add the correct layer
       let newLayerId = ''
-      if (newMode === 'production' && newProduction === 'Gas') {
+      // Check if we're in Basin focus
+      if (newFocus === 'Basin') {
+        newLayerId = 'basinsInjectionTx'
+        mapStore.setCurrentMapLayerView(newLayerId)
+        begMap.add(layerMap[newLayerId])
+      } else if (newMode === 'production' && newProduction === 'Gas') {
         newLayerId = 'countyBoundariesTx'
         mapStore.setCurrentMapLayerView(newLayerId)
         begMap.add(layerMap[newLayerId])
@@ -248,6 +254,7 @@ const colorVisVar = {
   ]
 };
 
+/*
 const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
   if (!classBreakInfos || classBreakInfos.length === 0) return [];
 //'Gas','Water','Liquid (Oil)',
@@ -291,6 +298,66 @@ const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
     return { value, color, label };
   });
 };
+*/
+
+const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
+  if (!classBreakInfos || classBreakInfos.length === 0) return [];
+
+  return classBreakInfos.map((classBreak, index) => {
+    const value = classBreak.maxValue;
+    const color = colorArray[index % colorArray.length];
+    let label;
+
+    if (index === 0) {
+      label = "0";
+    } else {
+      const prevMax = classBreakInfos[index - 1].maxValue;
+      let prevFormatted, currentFormatted, unit;
+
+      // Basin-specific units
+      if (unitType === 'BCF') {
+        prevFormatted = prevMax.toFixed(1);
+        currentFormatted = value.toFixed(1);
+        unit = 'BCF';
+      } else if (unitType === 'Billion_GAL') {
+        prevFormatted = prevMax.toFixed(1);
+        currentFormatted = value.toFixed(1);
+        unit = 'B GAL';
+      } else if (unitType === 'Million_BBL') {
+        prevFormatted = prevMax.toFixed(1);
+        currentFormatted = value.toFixed(1);
+        unit = 'M BBL';
+      }
+      // County-specific units
+      else if (unitType === 'BBL' && (mapStore.currentMapLayerView === 'countyProducedWaterTx' || mapStore.currentMapLayerView === 'countyLiquidOilTx')) {
+        prevFormatted = (prevMax / 1000000).toFixed(1);
+        currentFormatted = (value / 1000000).toFixed(1);
+        unit = 'M BBL';
+      } else if (unitType === 'BBL' && mapStore.currentMapLayerView === 'countiesInjectionTx') {
+        prevFormatted = (prevMax / 1000000).toFixed(1);
+        currentFormatted = (value / 1000000).toFixed(1);
+        unit = 'M BBL';
+      } else if (unitType === 'BBL') {
+        prevFormatted = (prevMax / 1000000000).toFixed(1);
+        currentFormatted = (value / 1000000000).toFixed(1);
+        unit = 'B BBL';
+      } else if (unitType === 'GAL') {
+        prevFormatted = (prevMax / 1000000).toFixed(1);
+        currentFormatted = (value / 1000000).toFixed(1);
+        unit = 'M GAL';
+      } else { // MCF
+        prevFormatted = (prevMax / 1000000).toFixed(1);
+        currentFormatted = (value / 1000000).toFixed(1);
+        unit = 'M MCF';
+      }
+
+      label = `${prevFormatted} - ${currentFormatted} ${unit}`;
+    }
+
+    return { value, color, label };
+  });
+};
+
 async function updateMapLayerExpression(newExpression) {
   let colorArray;
   let unitType;
@@ -312,9 +379,9 @@ async function updateMapLayerExpression(newExpression) {
       '#B3A37A', '#9E8A65',
       '#8A7151', '#785A3E'];
     colorArray = ['#CCCCCC',
-        "#CCECD1","#99D8C9",
-        "#66C2A4","#41AE76",
-        "#238B45","#005824",
+      "#CCECD1","#99D8C9",
+      "#66C2A4","#41AE76",
+      "#238B45","#005824",
 
     ]
     unitType = 'BBL';
@@ -344,6 +411,28 @@ async function updateMapLayerExpression(newExpression) {
       "#FD8D3C", "#F16913",
       "#D94801", "#8C2D04"];
     unitType = 'BBL';
+  } else if (mapStore.currentMapLayerView === 'basinsInjectionTx') {
+    // Determine colors based on data type
+    if (mapStore.dataMode === 'production') {
+      if (mapStore.selectedProduction === 'Gas') {
+        colorArray = ["#CCCCCC", "#FCBBA1", "#FC9272", "#FB6A4A","#EF3B2C", "#CB181D", "#99000D"]
+        unitType = 'BCF'
+      } else if (mapStore.selectedProduction === 'Liquid Oil') {
+        colorArray = ['#CCCCCC', "#CCECD1","#99D8C9", "#66C2A4","#41AE76", "#238B45","#005824"]
+        unitType = 'Million_BBL'
+      } else if (mapStore.selectedProduction === 'Produced Water') {
+        colorArray = ['#CCCCCC', '#DAD7A4', '#C6BC8F', '#B3A37A', '#9E8A65', '#8A7151', '#785A3E']
+        unitType = 'Million_BBL'
+      }
+    } else if (mapStore.dataMode === 'injection') {
+      if (mapStore.selectedInjection === 'HF Fluid') {
+        colorArray = ['#CCCCCC', '#CCEBC5', '#A8DDB5', '#7BCCC4', '#4EB3D3', '#2B8CBE', '#08589E']
+        unitType = 'Billion_GAL'
+      } else if (mapStore.selectedInjection === 'Salt Water Disposal') {
+        colorArray = ["#CCCCCC", "#FDD0A2", "#FDAE6B", "#FD8D3C", "#F16913", "#D94801", "#8C2D04"]
+        unitType = 'Million_BBL'
+      }
+    }
   }
 
   const currentLayer = layerMap[mapStore.currentMapLayerView];
@@ -436,9 +525,9 @@ onMounted(()=>{
     highlights: [
       { name: "default", color: "magenta",fillOpacity: 0.3  },
       { name: "temporary", color: "magenta" },
-/*
-      { name: "oaks", color: "forestgreen", haloOpacity: 0.8, fillOpacity: 0.3 }
-*/
+      /*
+            { name: "oaks", color: "forestgreen", haloOpacity: 0.8, fillOpacity: 0.3 }
+      */
     ],
     popup: {
       dockEnabled: true,
@@ -571,54 +660,74 @@ onMounted(()=>{
     begView.hitTest(event).then((response) => {
       const result = response.results[0]
       if (result?.graphic) {
-        let tmpCountyClicked = result.graphic.attributes.CNTY_NM
-        mapStore.setSelectedCounty(tmpCountyClicked)
-        mapStore.setMapFocus('County')
+        const layer = result.layer  // Define layer here, before using it
+        if (layer.id === 'basinsInjectionTx') {
+          // Basin clicked
+          let tmpBasinClicked = result.graphic.attributes.Feature
+          mapStore.setSelectedBasin(tmpBasinClicked)
+          mapStore.setMapFocus('Basin')
 
-        selectedGraphic = result.graphic
+          selectedGraphic = result.graphic
 
-        const layer = result.layer
-        begView.whenLayerView(layer).then((layerView) => {
-          if (highlightHandle) {
-            highlights.forEach((h) => h.remove())
-          }
+          begView.whenLayerView(layer).then((layerView) => {
+            if (highlightHandle) {
+              highlights.forEach((h) => h.remove())
+            }
 
-          highlightHandle = layerView.highlight(selectedGraphic, "default")
-          highlights.push(highlightHandle)
-          begView.goTo(selectedGraphic.geometry.extent.expand(4.5))
-        })
+            highlightHandle = layerView.highlight(selectedGraphic, "default")
+            highlights.push(highlightHandle)
+            begView.goTo(selectedGraphic.geometry.extent.expand(2.5))
+          })
+        } else {
+          let tmpCountyClicked = result.graphic.attributes.CNTY_NM
+          mapStore.setSelectedCounty(tmpCountyClicked)
+          mapStore.setMapFocus('County')
+
+          selectedGraphic = result.graphic
+
+          const layer = result.layer
+          begView.whenLayerView(layer).then((layerView) => {
+            if (highlightHandle) {
+              highlights.forEach((h) => h.remove())
+            }
+
+            highlightHandle = layerView.highlight(selectedGraphic, "default")
+            highlights.push(highlightHandle)
+            begView.goTo(selectedGraphic.geometry.extent.expand(4.5))
+          })
+        }
       }
     })
   })
-/*  begView.on("click", (event) => {
-    begView.hitTest(event).then((response) => {
-      const result = response.results[0]
-      if (result?.graphic) {
-        let tmpCountyClicked = result.graphic.attributes.CNTY_NM
-        mapStore.setSelectedCounty(tmpCountyClicked)
-        mapStore.setMapFocus('County')
+  /*  begView.on("click", (event) => {
+      begView.hitTest(event).then((response) => {
+        const result = response.results[0]
+        if (result?.graphic) {
+          let tmpCountyClicked = result.graphic.attributes.CNTY_NM
+          mapStore.setSelectedCounty(tmpCountyClicked)
+          mapStore.setMapFocus('County')
 
-        // Get the layerView from the layer
-        const layer = result.layer
-        //highlight = layerView.highlight(result.features, {name: "temporary"});
-        //hightlights.push(highlight);
-        begView.whenLayerView(layer).then((layerView) => {
-          if (highlightHandle) {
-            highlights.forEach((h) =>{
-              h.remove();
-            });
-          }
+          // Get the layerView from the layer
+          const layer = result.layer
+          //highlight = layerView.highlight(result.features, {name: "temporary"});
+          //hightlights.push(highlight);
+          begView.whenLayerView(layer).then((layerView) => {
+            if (highlightHandle) {
+              highlights.forEach((h) =>{
+                h.remove();
+              });
+            }
 
-          highlightHandle = layerView.highlight(result.graphic,"default")
-          highlights.push(highlightHandle);
-          //begView.goTo(result.graphic.geometry.extent.extent);
-          const ext = result.graphic.geometry.extent
-          const expanded = ext.expand(2.5)
-          begView.goTo(expanded);
-        })
-      }
-    })
-  })*/
+            highlightHandle = layerView.highlight(result.graphic,"default")
+            highlights.push(highlightHandle);
+            //begView.goTo(result.graphic.geometry.extent.extent);
+            const ext = result.graphic.geometry.extent
+            const expanded = ext.expand(2.5)
+            begView.goTo(expanded);
+          })
+        }
+      })
+    })*/
   /*begView.on("click", (event) => {
     begView.hitTest(event).then((response) => {
       const countyFeature = response.results[0]?.graphic
