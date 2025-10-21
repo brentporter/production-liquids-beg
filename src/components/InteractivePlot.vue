@@ -168,10 +168,10 @@ async function loadChartData() {
       }
       await loadCountyData()
     } else if (mapStore.mapFocus === 'Basin'){
-      /*if (!mapStore.selectedBasin) {
+      if (!mapStore.selectedBasin) {
         showBasinWarning.value = true
         return
-      }*/
+      }
       await loadBasinData()
     }
   } catch (error) {
@@ -180,56 +180,83 @@ async function loadChartData() {
 }
 
 async function loadBasinData(){
-  const basinData = dataStore.basinData;
+  const basinName = mapStore.selectedBasin;
+  const basinData = dataStore.basinData[basinName]
+  //const basinData = dataStore.basinData;
+  console.log(basinData)
+  console.log(mapStore.selectedProduction)
 
-  if (!basinData || !Array.isArray(basinData)) {
+  if (!basinData) {
     console.error('Basin data not available')
     return
   }
 
-  let values = []
-  let seriesName = ''
-
   if (mapStore.dataMode === 'production') {
+    let values = []
+    let seriesName = ''
+
     if (mapStore.selectedProduction === 'Gas') {
-      values = extractValues(basinData, 'Gas_Produced_MCF')
+      values = extractValues(basinData.gas_produced, 'value')
       seriesName = 'Gas Production'
     } else if (mapStore.selectedProduction === 'Liquid Oil') {
-      values = extractValues(basinData, 'Liquid_Produced_BBL')
+      values = extractValues(basinData.liquid_produced, 'value')
       seriesName = 'Liquid Oil Production'
     } else if (mapStore.selectedProduction === 'Produced Water') {
-      values = extractValues(basinData, 'Water_Produced_BBL')
+      values = extractValues(basinData.water_produced, 'value')
       seriesName = 'Produced Water'
     }
+    chartSeries.value = [
+      {
+        name: seriesName,
+        data: values
+      }
+    ]
+
+    chartOptions.value.title.text = `${firstCapital(mapStore.selectedBasin)} ${seriesName}`
+    chartOptions.value.yaxis.title.text = currentYAxisTitle.value
+
+    await nextTick()
+    setTimeout(() => {
+      if (charted.value?.updateOptions) {
+        charted.value.updateOptions({
+          title: chartOptions.value.title,
+          yaxis: chartOptions.value.yaxis
+        })
+      }
+    }, 50)
   } else if (mapStore.dataMode === 'injection') {
+
+    let values = []
+    let seriesName = ''
     if (mapStore.selectedInjection === 'HF Fluid') {
-      values = extractValues(basinData, 'HF_Water_GAL')
+      values = extractValues(basinData.hf_fluid, 'value')
       seriesName = 'HF Fluid'
     } else if (mapStore.selectedInjection === 'Salt Water Disposal') {
-      values = extractValues(basinData, 'Salt_Water_Disposal_BBL')
+      values = extractValues(basinData.injection, 'value')
       seriesName = 'Salt Water Disposal'
     }
+
+
+    chartSeries.value = [
+      {
+        name: seriesName,
+        data: values
+      }
+    ]
+
+    chartOptions.value.title.text = `${firstCapital(mapStore.selectedBasin)} ${seriesName}`
+    chartOptions.value.yaxis.title.text = currentYAxisTitle.value
+
+    await nextTick()
+    setTimeout(() => {
+      if (charted.value?.updateOptions) {
+        charted.value.updateOptions({
+          title: chartOptions.value.title,
+          yaxis: chartOptions.value.yaxis
+        })
+      }
+    }, 50)
   }
-
-  chartSeries.value = [
-    {
-      name: seriesName,
-      data: values
-    }
-  ]
-
-  chartOptions.value.title.text = `Basin-wide ${seriesName}`
-  chartOptions.value.yaxis.title.text = currentYAxisTitle.value
-
-  await nextTick()
-  setTimeout(() => {
-    if (charted.value?.updateOptions) {
-      charted.value.updateOptions({
-        title: chartOptions.value.title,
-        yaxis: chartOptions.value.yaxis
-      })
-    }
-  }, 50)
 }
 
 async function loadStatewideData() {
@@ -288,6 +315,8 @@ async function loadStatewideData() {
 async function loadCountyData() {
   const countyName = mapStore.selectedCounty.toUpperCase()
   const countyData = dataStore.countyData[countyName]
+
+  console.log(countyData)
 
   if (!countyData) {
     console.error('County data not found:', countyName)
@@ -369,7 +398,8 @@ watch(
       () => mapStore.dataMode,
       () => mapStore.selectedProduction,
       () => mapStore.selectedInjection,
-      () => mapStore.selectedCounty
+      () => mapStore.selectedCounty,
+      () => mapStore.selectedBasin
     ],
     async () => {
       await loadChartData()

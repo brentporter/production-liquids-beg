@@ -664,6 +664,7 @@ onMounted(()=>{
         if (layer.id === 'basinsInjectionTx') {
           // Basin clicked
           let tmpBasinClicked = result.graphic.attributes.Feature
+          console.log(tmpBasinClicked);
           mapStore.setSelectedBasin(tmpBasinClicked)
           mapStore.setMapFocus('Basin')
 

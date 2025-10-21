@@ -18,6 +18,7 @@ export const useDataStore = defineStore('data', () => {
     const countyData = ref({})
     const statewideData = ref([])
     const basinData = ref({})
+    const basinRawData = ref([])
 
     // Computed
     const hasData = computed(() => isLoaded.value && !error.value)
@@ -68,6 +69,7 @@ export const useDataStore = defineStore('data', () => {
                 skipEmptyLines: true
             })
 
+            basinRawData.value = basinParsed.data
             // Process data by county
             processCountyData()
 
@@ -75,7 +77,7 @@ export const useDataStore = defineStore('data', () => {
             processStatewideData(stateParsed.data)
 
             // Process basin-level data
-            processBasinData(basinParsed.data)
+            processBasinData()
 
             isLoaded.value = true
             console.log('All CSV data loaded successfully')
@@ -129,6 +131,7 @@ export const useDataStore = defineStore('data', () => {
                 value: row.Salt_Water_Disposal_Million_BBL * 1000000 // Convert to BBL
             })
         })
+        console.log(countyData);
     }
 
     function processStatewideData(stateData) {
@@ -142,11 +145,11 @@ export const useDataStore = defineStore('data', () => {
         })).sort((a, b) => a.Year - b.Year)
     }
 
-    function processBasinData(basinDataRaw) {
+    function processBasinData() {
         basinData.value = {}
 
-        basinDataRaw.forEach(row => {
-            const basin = row.Basin.toUpperCase()
+        basinRawData.value.forEach(row => {
+            const basin = row.Basin
 
             if (!basinData.value[basin]) {
                 basinData.value[basin] = {
