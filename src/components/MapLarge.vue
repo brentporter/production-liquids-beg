@@ -677,7 +677,7 @@ onMounted(()=>{
 
             highlightHandle = layerView.highlight(selectedGraphic, "default")
             highlights.push(highlightHandle)
-            begView.goTo(selectedGraphic.geometry.extent.expand(2.5))
+            begView.goTo(selectedGraphic.geometry.extent.expand(3.5))
           })
         } else {
           let tmpCountyClicked = result.graphic.attributes.CNTY_NM

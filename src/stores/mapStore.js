@@ -56,7 +56,7 @@ export const useMapStore = defineStore('map', () => {
                     return `HF_Water_Billion_Gal_${selectedProductionYear.value}`
                 } else if (selectedInjection.value === 'Salt Water Disposal') {
                     console.log(selectedInjection.value)
-                    return `SaltWaterDisposal_Million_BBL_${selectedProductionYear.value}`
+                    return `SWaterDisp_Million_BBL_${selectedProductionYear.value}`
                 }
             }
         }
