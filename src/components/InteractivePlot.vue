@@ -22,7 +22,7 @@
         location="center"
         color="orange-darken-4"
     >
-      Please select a county first either from the map.
+      Please select a county first from the map.
       <template v-slot:actions>
         <v-btn color="white" variant="text" @click="showWarning = false">
           Close
@@ -57,6 +57,8 @@ const dataStore = useDataStore()
 const charted = ref(null)
 const showWarning = ref(false)
 const showBasinWarning = ref(false)
+const isLoading = ref(false)
+const chartRendered = ref(true)
 
 // Single series - only one product at a time
 const chartSeries = ref([
@@ -158,6 +160,9 @@ function extractValues(data, key) {
 
 // Main data loading function
 async function loadChartData() {
+  if (isLoading.value) return
+
+  isLoading.value = true
   try {
     if (mapStore.mapFocus === 'State') {
       await loadStatewideData()
@@ -176,15 +181,14 @@ async function loadChartData() {
     }
   } catch (error) {
     console.error('Error loading chart data:', error)
+  } finally {
+    isLoading.value = false
   }
 }
 
 async function loadBasinData(){
-  const basinName = mapStore.selectedBasin;
+  const basinName = mapStore.selectedBasin
   const basinData = dataStore.basinData[basinName]
-  //const basinData = dataStore.basinData;
-  console.log(basinData)
-  console.log(mapStore.selectedProduction)
 
   if (!basinData) {
     console.error('Basin data not available')
@@ -205,29 +209,61 @@ async function loadBasinData(){
       values = extractValues(basinData.water_produced, 'value')
       seriesName = 'Produced Water'
     }
-    chartSeries.value = [
-      {
+
+    const newOptions = {
+      series: [{
         name: seriesName,
         data: values
+      }],
+      title: {
+        text: `${firstCapital(mapStore.selectedBasin)} ${seriesName}`,
+        align: 'left',
+        margin: 0,
+        offsetX: 10,
+        offsetY: 10,
+        floating: false,
+        style: {
+          fontSize: '19px',
+          fontWeight: 'bold',
+          color: '#bdcfdb'
+        }
+      },
+      yaxis: {
+        showAlways: true,
+        axisBorder: {
+          show: true,
+          color: '#ffffff',
+          offsetX: 0,
+          offsetY: 0
+        },
+        title: {
+          text: currentYAxisTitle.value
+        },
+        labels: {
+          formatter: (val) => numberWithCommas(val)
+        },
+        min: undefined,
+        max: undefined,
+        tickAmount: undefined,
+        forceNiceScale: true
       }
-    ]
-
-    chartOptions.value.title.text = `${firstCapital(mapStore.selectedBasin)} ${seriesName}`
-    chartOptions.value.yaxis.title.text = currentYAxisTitle.value
+    }
 
     await nextTick()
     setTimeout(() => {
       if (charted.value?.updateOptions) {
-        charted.value.updateOptions({
-          title: chartOptions.value.title,
-          yaxis: chartOptions.value.yaxis
-        })
+        try {
+          charted.value.updateOptions(newOptions)
+        } catch (error) {
+          console.warn('ApexCharts parser warning (continuing):', error)
+        }
       }
-    }, 50)
-  } else if (mapStore.dataMode === 'injection') {
+    }, 100)
 
+  } else if (mapStore.dataMode === 'injection') {
     let values = []
     let seriesName = ''
+
     if (mapStore.selectedInjection === 'HF Fluid') {
       values = extractValues(basinData.hf_fluid, 'value')
       seriesName = 'HF Fluid'
@@ -236,26 +272,55 @@ async function loadBasinData(){
       seriesName = 'Salt Water Disposal'
     }
 
-
-    chartSeries.value = [
-      {
+    const newOptions = {
+      series: [{
         name: seriesName,
         data: values
+      }],
+      title: {
+        text: `${firstCapital(mapStore.selectedBasin)} ${seriesName}`,
+        align: 'left',
+        margin: 0,
+        offsetX: 10,
+        offsetY: 10,
+        floating: false,
+        style: {
+          fontSize: '19px',
+          fontWeight: 'bold',
+          color: '#bdcfdb'
+        }
+      },
+      yaxis: {
+        showAlways: true,
+        axisBorder: {
+          show: true,
+          color: '#ffffff',
+          offsetX: 0,
+          offsetY: 0
+        },
+        title: {
+          text: currentYAxisTitle.value
+        },
+        labels: {
+          formatter: (val) => numberWithCommas(val)
+        },
+        min: undefined,
+        max: undefined,
+        tickAmount: undefined,
+        forceNiceScale: true
       }
-    ]
-
-    chartOptions.value.title.text = `${firstCapital(mapStore.selectedBasin)} ${seriesName}`
-    chartOptions.value.yaxis.title.text = currentYAxisTitle.value
+    }
 
     await nextTick()
     setTimeout(() => {
       if (charted.value?.updateOptions) {
-        charted.value.updateOptions({
-          title: chartOptions.value.title,
-          yaxis: chartOptions.value.yaxis
-        })
+        try {
+          charted.value.updateOptions(newOptions)
+        } catch (error) {
+          console.warn('ApexCharts parser warning (continuing):', error)
+        }
       }
-    }, 50)
+    }, 100)
   }
 }
 
@@ -291,104 +356,234 @@ async function loadStatewideData() {
     }
   }
 
-  chartSeries.value = [
-    {
+  const newOptions = {
+    series: [{
       name: seriesName,
       data: values
+    }],
+    title: {
+      text: `Texas-wide ${seriesName}`,
+      align: 'left',
+      margin: 0,
+      offsetX: 10,
+      offsetY: 10,
+      floating: false,
+      style: {
+        fontSize: '19px',
+        fontWeight: 'bold',
+        color: '#bdcfdb'
+      }
+    },
+    yaxis: {
+      showAlways: true,
+      axisBorder: {
+        show: true,
+        color: '#ffffff',
+        offsetX: 0,
+        offsetY: 0
+      },
+      title: {
+        text: currentYAxisTitle.value
+      },
+      labels: {
+        formatter: (val) => numberWithCommas(val)
+      },
+      min: undefined,
+      max: undefined,
+      tickAmount: undefined,
+      forceNiceScale: true
     }
-  ]
-
-  chartOptions.value.title.text = `Texas-wide ${seriesName}`
-  chartOptions.value.yaxis.title.text = currentYAxisTitle.value
+  }
 
   await nextTick()
   setTimeout(() => {
     if (charted.value?.updateOptions) {
-      charted.value.updateOptions({
-        title: chartOptions.value.title,
-        yaxis: chartOptions.value.yaxis
-      })
+      try {
+        charted.value.updateOptions(newOptions)
+      } catch (error) {
+        console.warn('ApexCharts parser warning (continuing):', error)
+      }
     }
-  }, 50)
+  }, 100)
 }
 
 async function loadCountyData() {
   const countyName = mapStore.selectedCounty.toUpperCase()
   const countyData = dataStore.countyData[countyName]
 
-  console.log(countyData)
-
   if (!countyData) {
     console.error('County data not found:', countyName)
     return
   }
 
-  if (mapStore.dataMode === 'production') {
-    let values = []
-    let seriesName = ''
+  await nextTick()
+  let values = []
+  let seriesName = ''
+  setTimeout(() => {
+    if (mapStore.dataMode === 'production') {
 
-    if (mapStore.selectedProduction === 'Gas') {
-      values = extractValues(countyData.gas_produced, 'value')
-      seriesName = 'Gas Production'
-    } else if (mapStore.selectedProduction === 'Liquid Oil') {
-      values = extractValues(countyData.liquid_produced, 'value')
-      seriesName = 'Liquid Oil Production'
-    } else if (mapStore.selectedProduction === 'Produced Water') {
-      values = extractValues(countyData.water_produced, 'value')
-      seriesName = 'Produced Water'
-    }
 
-    chartSeries.value = [
-      {
-        name: seriesName,
-        data: values
+      if (mapStore.selectedProduction === 'Gas') {
+        values = extractValues(countyData.gas_produced, 'value')
+        seriesName = 'Gas Production'
+      } else if (mapStore.selectedProduction === 'Liquid Oil') {
+        values = extractValues(countyData.liquid_produced, 'value')
+        seriesName = 'Liquid Oil Production'
+      } else if (mapStore.selectedProduction === 'Produced Water') {
+        values = extractValues(countyData.water_produced, 'value')
+        seriesName = 'Produced Water'
       }
-    ]
 
-    chartOptions.value.title.text = `${firstCapital(mapStore.selectedCounty)} ${seriesName}`
-    chartOptions.value.yaxis.title.text = currentYAxisTitle.value
+      let newOptions = {
+        series: [{
+          name: seriesName,
+          data: values
+        }],
+        title: {
+          text: `${firstCapital(mapStore.selectedCounty)} ${seriesName}`,
+          align: 'left',
+          margin: 0,
+          offsetX: 10,
+          offsetY: 10,
+          floating: false,
+          style: {
+            fontSize: '19px',
+            fontWeight: 'bold',
+            color: '#bdcfdb'
+          }
+        },
+        yaxis: {
+          showAlways: true,
+          axisBorder: {
+            show: true,
+            color: '#ffffff',
+            offsetX: 0,
+            offsetY: 0
+          },
+          title: {
+            text: currentYAxisTitle.value
+          },
+          labels: {
+            formatter: (val) => numberWithCommas(val)
+          },
+          /*min: undefined,
+          max: undefined,
+          tickAmount: undefined,
+          forceNiceScale: true*/
+        }
+      }
+      //let newOptions  = [...newOptions.value.yaxis]
+      /*newOptions = {
+        ...newOptions,
+        min: undefined,
+        max: undefined,
+        tickAmount: undefined,
+        forceNiceScale: true
+      }*/
 
-    await nextTick()
-    setTimeout(() => {
+      //console.log(countyName + " is the county Name");
+      // Sutton County fix - override with static values
+      /*if (countyName === 'SUTTON' && mapStore.selectedProduction === 'Gas') {
+        newOptions.yaxis.min = 0
+        newOptions.yaxis.max = 60000
+        newOptions.yaxis.tickAmount = 6
+        newOptions.yaxis.forceNiceScale = false
+      }*/
+
+
+      //await nextTick()
+
+// Wait for chart to actually render before allowing next update
+      /*    if (!chartRendered.value) {
+      await new Promise(resolve => {
+        const checkRendered = setInterval(() => {
+          if (chartRendered.value) {
+            clearInterval(checkRendered)
+            resolve()
+          }
+        }, 50)
+      })
+    }*/
+
+      //setTimeout(() => {
+      //chartRendered.value = false;
+      if (charted.value) {
+        try {
+          charted.value.updateOptions(newOptions)
+        } catch (error) {
+          console.warn('ApexCharts parser warning (continuing):', error)
+        }
+      } else {
+        chartOptions.value = {
+          ...chartOptions.value,
+          ...newOptions
+        }
+      }
+      //}, 100)
+
+    } else if (mapStore.dataMode === 'injection') {
+      let values = []
+      let seriesName = ''
+
+      if (mapStore.selectedInjection === 'HF Fluid') {
+        values = extractValues(countyData.hf_fluid, 'value')
+        seriesName = 'HF Fluid'
+      } else if (mapStore.selectedInjection === 'Salt Water Disposal') {
+        values = extractValues(countyData.injection, 'value')
+        seriesName = 'Salt Water Disposal'
+      }
+
+      const newOptions = {
+        series: [{
+          name: seriesName,
+          data: values
+        }],
+        title: {
+          text: `${firstCapital(mapStore.selectedCounty)} ${seriesName}`,
+          align: 'left',
+          margin: 0,
+          offsetX: 10,
+          offsetY: 10,
+          floating: false,
+          style: {
+            fontSize: '19px',
+            fontWeight: 'bold',
+            color: '#bdcfdb'
+          }
+        },
+        yaxis: {
+          showAlways: true,
+          axisBorder: {
+            show: true,
+            color: '#ffffff',
+            offsetX: 0,
+            offsetY: 0
+          },
+          title: {
+            text: currentYAxisTitle.value
+          },
+          labels: {
+            formatter: (val) => numberWithCommas(val)
+          },
+          min: undefined,
+          max: undefined,
+          tickAmount: undefined,
+          forceNiceScale: true
+        }
+      }
+
+
+      //setTimeout(() => {
       if (charted.value?.updateOptions) {
-        charted.value.updateOptions({
-          title: chartOptions.value.title,
-          yaxis: chartOptions.value.yaxis
-        })
+        try {
+          charted.value.updateOptions(newOptions)
+        } catch (error) {
+          console.warn('ApexCharts parser warning (continuing):', error)
+        }
       }
-    }, 50)
-  } else if (mapStore.dataMode === 'injection') {
-    let values = []
-    let seriesName = ''
-
-    if (mapStore.selectedInjection === 'HF Fluid') {
-      values = extractValues(countyData.hf_fluid, 'value')
-      seriesName = 'HF Fluid'
-    } else if (mapStore.selectedInjection === 'Salt Water Disposal') {
-      values = extractValues(countyData.injection, 'value')
-      seriesName = 'Salt Water Disposal'
+      //}, 100)
     }
-
-    chartSeries.value = [
-      {
-        name: seriesName,
-        data: values
-      }
-    ]
-
-    chartOptions.value.title.text = `${firstCapital(mapStore.selectedCounty)} ${seriesName}`
-    chartOptions.value.yaxis.title.text = currentYAxisTitle.value
-
-    await nextTick()
-    setTimeout(() => {
-      if (charted.value?.updateOptions) {
-        charted.value.updateOptions({
-          title: chartOptions.value.title,
-          yaxis: chartOptions.value.yaxis
-        })
-      }
-    }, 50)
-  }
+  }, 150)
 }
 
 // Main watcher - reacts to any change in selections
