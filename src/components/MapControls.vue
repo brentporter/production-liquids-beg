@@ -1,7 +1,23 @@
 <template>
   <div class="controls">
+    <div class="control-section mt-5">
+      <div class="toggle-group">
+        <v-btn
+            :color="router.currentRoute.value.path === '/pwd/' ? 'orange-darken-4' : 'grey-darken-2'"
+            @click="navigateToView('map')"
+        >
+          Map Focus
+        </v-btn>
+        <v-btn
+            :color="router.currentRoute.value.path === '/pwd/table' ? 'orange-darken-4' : 'grey-darken-2'"
+            @click="navigateToView('table')"
+        >
+          Table Focus
+        </v-btn>
+      </div>
+    </div>
     <div class="control-section">
-      <h3 class="section-title">Map Focus</h3>
+      <h3 class="section-title">{{ focusTitle }}</h3>
       <div class="button-group">
         <v-btn
             v-for="option in mapStore.mapFocusOptions"
@@ -17,7 +33,7 @@
     </div>
 
     <div class="control-section">
-      <h3 class="section-title">Data Mode</h3>
+      <h3 class="section-title">Data Types</h3>
       <div class="toggle-group">
         <v-btn
             class="control-button"
@@ -84,8 +100,21 @@
 
 <script setup>
 import { useMapStore } from '../stores/mapStore'
+import {useRouter} from "vue-router";
+import router from "@/router/index.js";
+import {computed} from "vue";
 
+const focusTitle = computed(() => {
+  return router.currentRoute.value.path === '/pwd/table' ? 'Table Focus' : 'Map Focus'
+})
 const mapStore = useMapStore()
+function navigateToView(incomingDir){
+  if (incomingDir === 'map') {
+    router.push('/pwd/')
+  } else if (incomingDir === 'table') {
+    router.push('/pwd/table')
+  }
+}
 </script>
 
 <style scoped>

@@ -7,7 +7,7 @@
         <button class="sidebar-close" v-show="sidebarOpen" @click="sidebarOpen = !sidebarOpen">×</button>
         <MapControls />
       </aside>
-      <main class="content">
+      <main class="content justify-center overflow-y-scroll" style="">
         <button class="menu-toggle" style="color: #000000" v-show="!sidebarOpen" @click="sidebarOpen = !sidebarOpen">☰</button>
         <router-view />
       </main>
@@ -30,6 +30,28 @@ const sidebarOpen = ref(true)
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+:deep(.v-data-table) {
+  overflow: visible;
+}
+
+:deep(.v-table__wrapper) {
+  overflow: visible;
+}
+
+.v-table{
+  margin-left: 7rem;
+}
+
+.v-table thead th {
+  background-color: #c7c7c7;
+  font-weight: bold !important;
+  color:black;
+  /*  background-color: #F48FB1;
+    color:black;*/
+}
+.v-table tbody tr:nth-child(even) {
+  background-color: #c7c7c7;
 }
 
 .app-container {
