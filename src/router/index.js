@@ -8,6 +8,12 @@ const routes = [
         meta: { title: 'Produced Energy Explorer' }
     },
     {
+        path: '/pwd/table',
+        name: 'Table',
+        component: () => import('../views/TableView.vue'),
+        meta: { title: 'Data Table' }
+    },
+    {
         path: '',
         name: 'pwd',
         redirect: to => {
