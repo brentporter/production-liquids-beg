@@ -89,7 +89,38 @@
         </label>
       </div>
     </div>
-
+    <v-autocomplete
+      class="ml-4"
+      max-width="200"
+      min-width="200"
+      density="compact"
+      hint="Start typing County"
+      chips
+      label="Autocomplete"
+      :items="useDataStore().aryCountiesAry"
+      v-model="useMapStore().selectedCounty"
+  >
+    <template v-slot:chip="{ props, item }">
+      <v-chip color="orange-darken-4" variant="flat">
+      </v-chip>
+    </template>
+  </v-autocomplete>
+    <v-btn
+        class="ml-1 pl-1"
+        elevation="3"
+        color="orange-darken-4"
+        append-icon="mdi-account-circle"
+        prepend-icon="mdi-erase"
+        @click="clearChoices"
+    >
+      <template v-slot:prepend>
+        <v-icon color="success"></v-icon>
+      </template>
+      Clear Choices
+      <template v-slot:append>
+        <v-icon color="warning"></v-icon>
+      </template>
+    </v-btn>
 <!--    <div class="control-section">
       <v-btn class="refresh-button">
         ⟳ Refresh Data
@@ -100,9 +131,10 @@
 
 <script setup>
 import { useMapStore } from '../stores/mapStore'
+import {useDataStore} from "@/stores/dataStore.js";
 import {useRouter} from "vue-router";
 import router from "@/router/index.js";
-import {computed} from "vue";
+import {computed, ref} from "vue";
 
 const focusTitle = computed(() => {
   return router.currentRoute.value.path === '/pwd/table' ? 'Table Focus' : 'Map Focus'
@@ -115,6 +147,21 @@ function navigateToView(incomingDir){
     router.push('/pwd/table')
   }
 }
+
+function clearChoices(){
+  useMapStore().setSelectedCounty(null);
+}
+
+/*const filterText = ref('')
+const filteredCounties = computed(() => {
+  if (!filterText.value) {
+    return useDataStore().aryCounties
+  }
+
+  return useDataStore.aryCounties.filter(county =>
+      county.toLowerCase().includes(filterText.value.toLowerCase())
+  )
+})*/
 </script>
 
 <style scoped>
