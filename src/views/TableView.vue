@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <div class="d-flex justify-space-between align-center mb-4 mt-2">
-      <h1 style="margin-left: 7.4rem">{{ tableTitle }}</h1>
+      <h1 style="margin-left: 7.6rem">{{ tableTitle }}</h1>
       <v-btn
           color="orange-darken-3"
           @click="downloadCSV"
@@ -17,7 +17,7 @@
         type="info"
         variant="tonal"
         class="mb-4"
-        style="margin-left: 7rem"
+        style="margin-left: 7.6rem"
     >
       Please select a {{ mapStore.mapFocus.toLowerCase() }} from the selection tool or map to view data.
     </v-alert>
@@ -38,6 +38,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useMapStore } from '../stores/mapStore'
 import { useDataStore } from '../stores/dataStore'
 import Papa from 'papaparse'
+import {firstCapital} from "@/scripts/utility.js";
 
 const mapStore = useMapStore()
 const dataStore = useDataStore()
@@ -49,9 +50,10 @@ const tableTitle = computed(() => {
   if (mapStore.mapFocus === 'State') {
     location = 'Texas Statewide'
   } else if (mapStore.mapFocus === 'County' && mapStore.selectedCounty) {
-    location = `${mapStore.selectedCounty} County`
+    //firstCapital(mapStore.selectedCounty)
+    location = `${firstCapital(mapStore.selectedCounty)} County`
   } else if (mapStore.mapFocus === 'Basin' && mapStore.selectedBasin) {
-    location = `${mapStore.selectedBasin} Basin`
+    location = `${mapStore.selectedBasin}`
   } else {
     location = 'No Selection'
   }
@@ -62,7 +64,7 @@ const tableTitle = computed(() => {
     dataType = mapStore.selectedInjection
   }
 
-  return `${location} - ${dataType} Data`
+  return `${location} - Roll Up Data`
 })
 
 const headers = computed(() => {

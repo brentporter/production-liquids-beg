@@ -19,8 +19,9 @@ export const useDataStore = defineStore('data', () => {
     const statewideData = ref([])
     const basinData = ref({})
     const basinRawData = ref([])
-    let aryCountiesAry = ["anderson","andrews","angelina","aransas","archer","armstrong","atascosa","austin","bailey","bandera","bastrop","baylor","bee","bell","bexar","blanco","borden","bosque","bowie","brazoria","brazos","brewster","briscoe","brooks","brown","burleson","burnet","caldwell","calhoun","callahan","cameron","camp","carson","cass","castro","chambers","cherokee","childress","clay","cochran","coke","coleman","collin","collingsworth","colorado","comal","comanche","concho","cooke","coryell","cottle","crane","crockett","crosby","culberson","dallam","dallas","dawson","de witt","deaf smith","delta","denton","dickens","dimmit","donley","duval","eastland","ector","edwards","el paso","ellis","erath","falls","fannin","fayette","fisher","floyd","foard","fort bend","franklin","freestone","frio","gaines","galveston","garza","gillespie","glasscock","goliad","gonzales","gray","grayson","gregg","grimes","guadalupe","hale","hall","hamilton","hansford","hardeman","hardin","harris","harrison","hartley","haskell","hays","hemphill","henderson","hidalgo","hill","hockley","hood","hopkins","houston","howard","hudspeth","hunt","hutchinson","irion","jack","jackson","jasper","jeff davis","jefferson","jim hogg","jim wells","johnson","jones","karnes","kaufman","kendall","kenedy","kent","kerr","kimble","king","kinney","kleberg","knox","la salle","lamar","lamb","lampasas","lavaca","lee","leon","liberty","limestone","lipscomb","live oak","llano","loving","lubbock","lynn","madison","marion","martin","mason","matagorda","maverick","mcculloch","mclennan","mcmullen","medina","menard","midland","milam","mills","mitchell","montague","montgomery","moore","morris","motley","nacogdoches","navarro","newton","nolan","nueces","ochiltree","oldham","orange","palo pinto","panola","parker","parmer","pecos","polk","potter","presidio","rains","randall","reagan","real","red river","reeves","refugio","roberts","robertson","rockwall","runnels","rusk","sabine","san augustine","san jacinto","san patricio","san saba","schleicher","scurry","shackelford","shelby","sherman","smith","somervell","starr","stephens","sterling","stonewall","sutton","swisher","tarrant","taylor","terrell","terry","throckmorton","titus","tom green","travis","trinity","tyler","upshur","upton","uvalde","val verde","van zandt","victoria","walker","waller","ward","washington","webb","wharton","wheeler","wichita","wilbarger","willacy","williamson","wilson","winkler","wise","wood","yoakum","young","zapata","zavala"]
-    let autocompleteValues= null;
+    const countyNames = ref([])
+    const basinNames = ref([])
+
     // Computed
     const hasData = computed(() => isLoaded.value && !error.value)
 
@@ -71,6 +72,7 @@ export const useDataStore = defineStore('data', () => {
             })
 
             basinRawData.value = basinParsed.data
+
             // Process data by county
             processCountyData()
 
@@ -92,10 +94,11 @@ export const useDataStore = defineStore('data', () => {
 
     function processCountyData() {
         countyData.value = {}
+        const counties = new Set()
 
         rawData.value.forEach(row => {
             const county = row.County.toUpperCase()
-
+            counties.add(county)
             if (!countyData.value[county]) {
                 countyData.value[county] = {
                     gas_produced: [],
@@ -132,7 +135,10 @@ export const useDataStore = defineStore('data', () => {
                 value: row.Salt_Water_Disposal_Million_BBL * 1000000 // Convert to BBL
             })
         })
-        console.log(countyData);
+
+        // Convert Set to sorted array
+        countyNames.value = Array.from(counties).sort()
+        console.log('County names:', countyNames.value)
     }
 
     function processStatewideData(stateData) {
@@ -148,9 +154,11 @@ export const useDataStore = defineStore('data', () => {
 
     function processBasinData() {
         basinData.value = {}
+        const basins = new Set()
 
         basinRawData.value.forEach(row => {
             const basin = row.Basin
+            basins.add(basin)
 
             if (!basinData.value[basin]) {
                 basinData.value[basin] = {
@@ -188,7 +196,10 @@ export const useDataStore = defineStore('data', () => {
                 value: row.Salt_Water_Disposal_Million_BBL * 1000000 // Convert to BBL
             })
         })
-        console.log(basinData);
+
+        // Convert Set to sorted array
+        basinNames.value = Array.from(basins).sort()
+        console.log('Basin names:', basinNames.value)
     }
 
     function getCountyData(county, dataType = 'production') {
@@ -234,9 +245,10 @@ export const useDataStore = defineStore('data', () => {
         countyData,
         statewideData,
         basinData,
+        basinRawData,
+        countyNames,
+        basinNames,
         hasData,
-        aryCountiesAry,
-        autocompleteValues,
         loadCSVData,
         getDataByFocus,
         getCountyData
