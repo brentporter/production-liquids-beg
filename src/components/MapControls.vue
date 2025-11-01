@@ -90,21 +90,21 @@
       </div>
     </div>
     <v-autocomplete
-      class="ml-4"
-      max-width="200"
-      min-width="200"
-      density="compact"
-      hint="Start typing County"
-      chips
-      label="Autocomplete"
-      :items="useDataStore().aryCountiesAry"
-      v-model="useMapStore().selectedCounty"
-  >
-    <template v-slot:chip="{ props, item }">
-      <v-chip color="orange-darken-4" variant="flat">
-      </v-chip>
-    </template>
-  </v-autocomplete>
+        class="ml-4"
+        max-width="200"
+        min-width="200"
+        density="compact"
+        :hint="autocompleteHint"
+        chips
+        :label="autocompleteLabel"
+        :items="autocompleteItems"
+        v-model="autocompleteModel"
+    >
+      <template v-slot:chip="{ props, item }">
+        <v-chip color="orange-darken-4" variant="flat">
+        </v-chip>
+      </template>
+    </v-autocomplete>
     <v-btn
         class="ml-1 pl-1"
         elevation="3"
@@ -131,15 +131,61 @@
 
 <script setup>
 import { useMapStore } from '../stores/mapStore'
-import {useDataStore} from "@/stores/dataStore.js";
-import {useRouter} from "vue-router";
-import router from "@/router/index.js";
-import {computed, ref} from "vue";
+import { useDataStore } from "@/stores/dataStore.js"
+import { useRouter } from "vue-router"
+import { computed } from "vue"
+
+const mapStore = useMapStore()
+const dataStore = useDataStore()
+const router = useRouter()
 
 const focusTitle = computed(() => {
   return router.currentRoute.value.path === '/pwd/table' ? 'Table Focus' : 'Map Focus'
 })
-const mapStore = useMapStore()
+
+// Dynamic autocomplete items based on map focus
+const autocompleteItems = computed(() => {
+  if (mapStore.mapFocus === 'County') {
+    return dataStore.countyNames
+  } else if (mapStore.mapFocus === 'Basin') {
+    return dataStore.basinNames
+  }
+  return []
+})
+
+// Dynamic label
+const autocompleteLabel = computed(() => {
+  if (mapStore.mapFocus === 'County') return 'Select County'
+  if (mapStore.mapFocus === 'Basin') return 'Select Basin'
+  return 'Autocomplete'
+})
+
+// Dynamic hint
+const autocompleteHint = computed(() => {
+  if (mapStore.mapFocus === 'County') return 'Start typing County'
+  if (mapStore.mapFocus === 'Basin') return 'Start typing Basin'
+  return ''
+})
+
+// Dynamic model binding
+const autocompleteModel = computed({
+  get() {
+    if (mapStore.mapFocus === 'County') {
+      return mapStore.selectedCounty
+    } else if (mapStore.mapFocus === 'Basin') {
+      return mapStore.selectedBasin
+    }
+    return null
+  },
+  set(value) {
+    if (mapStore.mapFocus === 'County') {
+      mapStore.setSelectedCounty(value)
+    } else if (mapStore.mapFocus === 'Basin') {
+      mapStore.setSelectedBasin(value)
+    }
+  }
+})
+
 function navigateToView(incomingDir){
   if (incomingDir === 'map') {
     router.push('/pwd/')
@@ -149,19 +195,9 @@ function navigateToView(incomingDir){
 }
 
 function clearChoices(){
-  useMapStore().setSelectedCounty(null);
+  mapStore.setSelectedCounty(null)
+  mapStore.setSelectedBasin(null)
 }
-
-/*const filterText = ref('')
-const filteredCounties = computed(() => {
-  if (!filterText.value) {
-    return useDataStore().aryCounties
-  }
-
-  return useDataStore.aryCounties.filter(county =>
-      county.toLowerCase().includes(filterText.value.toLowerCase())
-  )
-})*/
 </script>
 
 <style scoped>

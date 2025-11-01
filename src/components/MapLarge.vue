@@ -215,6 +215,40 @@ watch(
     }
 )
 
+watch(
+    () => mapStore.selectedBasin,
+    async (newBasin) => {
+      if (!newBasin || mapStore.mapFocus !== 'Basin') return
+
+      const layer = begMap.findLayerById('basinsInjectionTx')
+      if (!layer) return
+
+      const query = layer.createQuery()
+      query.where = `Feature = '${newBasin}'`
+
+      try {
+        console.log("In Basin Watch");
+        const results = await layer.queryFeatures(query)
+        if (results.features.length > 0) {
+          const feature = results.features[0]
+          selectedGraphic = feature
+
+          begView.whenLayerView(layer).then((layerView) => {
+            if (highlightHandle) {
+              highlights.forEach((h) => h.remove())
+            }
+
+            highlightHandle = layerView.highlight(feature, "default")
+            highlights.push(highlightHandle)
+            begView.goTo(feature.geometry.extent.expand(2.5))
+          })
+        }
+      } catch (error) {
+        console.error('Error querying basin:', error)
+      }
+    }
+)
+
 const colorVisVar = {
   type: "color",
   classificationMethod: "natural-breaks",
