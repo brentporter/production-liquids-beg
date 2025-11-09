@@ -14,11 +14,11 @@ export const useDataStore = defineStore('data', () => {
     const isLoading = ref(false)
     const error = ref(null)
 
-    const rawData = ref([])
+    const rawCountyData = ref([])
     const countyData = ref({})
     const statewideData = ref([])
     const basinData = ref({})
-    const basinRawData = ref([])
+    const rawBasinData = ref([])
     const countyNames = ref([])
     const basinNames = ref([])
 
@@ -55,7 +55,7 @@ export const useDataStore = defineStore('data', () => {
                 skipEmptyLines: true
             })
 
-            rawData.value = countyParsed.data
+            rawCountyData.value = countyParsed.data
 
             // Parse state-level CSV
             const stateParsed = Papa.parse(stateCSV, {
@@ -71,7 +71,7 @@ export const useDataStore = defineStore('data', () => {
                 skipEmptyLines: true
             })
 
-            basinRawData.value = basinParsed.data
+            rawBasinData.value = basinParsed.data
 
             // Process data by county
             processCountyData()
@@ -96,7 +96,7 @@ export const useDataStore = defineStore('data', () => {
         countyData.value = {}
         const counties = new Set()
 
-        rawData.value.forEach(row => {
+        rawCountyData.value.forEach(row => {
             const county = row.County.toUpperCase()
             counties.add(county)
             if (!countyData.value[county]) {
@@ -156,7 +156,7 @@ export const useDataStore = defineStore('data', () => {
         basinData.value = {}
         const basins = new Set()
 
-        basinRawData.value.forEach(row => {
+        rawBasinData.value.forEach(row => {
             const basin = row.Basin
             basins.add(basin)
 
@@ -241,11 +241,11 @@ export const useDataStore = defineStore('data', () => {
         isLoaded,
         isLoading,
         error,
-        rawData,
+        rawCountyData,
+        rawBasinData,
         countyData,
         statewideData,
         basinData,
-        basinRawData,
         countyNames,
         basinNames,
         hasData,

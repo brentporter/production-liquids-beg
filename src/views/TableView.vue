@@ -3,12 +3,24 @@
     <div class="d-flex justify-space-between align-center mb-4 mt-2">
       <h1 style="margin-left: 7.6rem">{{ tableTitle }}</h1>
       <v-btn
+          v-if="mapStore.mapFocus !== 'State'"
           color="orange-darken-3"
           @click="downloadCSV"
           :disabled="tableData.length === 0"
-          prepend-icon="mdi-download"
       >
-        Download CSV
+        <template v-slot:prepend>
+          <v-icon color="white">mdi-download</v-icon>
+        </template>
+        Download Selected
+      </v-btn>
+      <v-btn
+          color="blue-darken-3"
+          @click="downloadAllCSV"
+          :disabled="!dataStore.hasData"
+          class="ml-2"
+      >
+        Download All {{ mapStore.mapFocus === 'Basin' ? 'Basins' : mapStore.mapFocus === 'County' ? 'Counties' : 'Statewide' }}
+<!--        Download All {{ mapStore.mapFocus === 'Basin' ? 'Basins' : 'Counties' }}-->
       </v-btn>
     </div>
 
@@ -228,6 +240,193 @@ function downloadCSV() {
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+}
+function downloadAllCSV() {
+  const focus = mapStore.mapFocus;
+  let allData = [];
+  let filename = '';
+
+  if (focus === 'Basin') {
+    allData = dataStore.rawBasinData;
+    filename = 'all_basins_data.csv';
+  } else if (focus === 'County') {
+    allData = dataStore.rawCountyData;
+    filename = 'all_counties_data.csv';
+  } else {
+    // State level (focus === 'State' or default)
+    allData = dataStore.statewideData;
+    filename = 'statewide_data.csv';
+  }
+
+  if (!allData || allData.length === 0) {
+    console.warn('No data available for download');
+    return;
+  }
+
+  // Convert to CSV using Papa Parse
+  const csv = Papa.unparse(allData);
+
+  // Trigger download
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function getAllBasinsData() {
+  const allBasins = Object.keys(dataStore.basinData);
+  const allRows = [];
+
+  allBasins.forEach(basinName => {
+    const basinData = dataStore.basinData[basinName];
+    if (!basinData) return;
+
+    // Create a map of year to all values for this basin
+    const yearMap = {};
+
+    // Process each data type
+    basinData.gas_produced?.forEach(row => {
+      if (!yearMap[row.year]) {
+        yearMap[row.year] = {
+          Basin: basinName,
+          Year: row.year
+        };
+      }
+      yearMap[row.year].Gas = formatNumber(row.value);
+    });
+
+    basinData.liquid_produced?.forEach(row => {
+      if (!yearMap[row.year]) {
+        yearMap[row.year] = {
+          Basin: basinName,
+          Year: row.year
+        };
+      }
+      yearMap[row.year].LiquidOil = formatNumber(row.value);
+    });
+
+    basinData.water_produced?.forEach(row => {
+      if (!yearMap[row.year]) {
+        yearMap[row.year] = {
+          Basin: basinName,
+          Year: row.year
+        };
+      }
+      yearMap[row.year].ProducedWater = formatNumber(row.value);
+    });
+
+    basinData.hf_fluid?.forEach(row => {
+      if (!yearMap[row.year]) {
+        yearMap[row.year] = {
+          Basin: basinName,
+          Year: row.year
+        };
+      }
+      yearMap[row.year].HFFluid = formatNumber(row.value);
+    });
+
+    basinData.injection?.forEach(row => {
+      if (!yearMap[row.year]) {
+        yearMap[row.year] = {
+          Basin: basinName,
+          Year: row.year
+        };
+      }
+      yearMap[row.year].SaltWaterDisposal = formatNumber(row.value);
+    });
+
+    // Convert yearMap to array and add to allRows
+    Object.values(yearMap).forEach(row => allRows.push(row));
+  });
+
+  // Sort by Basin then Year
+  allRows.sort((a, b) => {
+    if (a.Basin !== b.Basin) return a.Basin.localeCompare(b.Basin);
+    return a.Year - b.Year;
+  });
+
+  return allRows;
+}
+
+function getAllCountiesData() {
+  const allCounties = Object.keys(dataStore.countyData);
+  const allRows = [];
+
+  allCounties.forEach(countyName => {
+    const countyData = dataStore.countyData[countyName];
+    if (!countyData) return;
+
+    // Create a map of year to all values for this county
+    const yearMap = {};
+
+    // Process each data type (same structure as basins)
+    countyData.gas_produced?.forEach(row => {
+      if (!yearMap[row.year]) {
+        yearMap[row.year] = {
+          County: countyName,
+          Year: row.year
+        };
+      }
+      yearMap[row.year].Gas = formatNumber(row.value);
+    });
+
+    countyData.liquid_oil_produced?.forEach(row => {
+      if (!yearMap[row.year]) {
+        yearMap[row.year] = {
+          County: countyName,
+          Year: row.year
+        };
+      }
+      yearMap[row.year].LiquidOil = formatNumber(row.value);
+    });
+
+    countyData.produced_water?.forEach(row => {
+      if (!yearMap[row.year]) {
+        yearMap[row.year] = {
+          County: countyName,
+          Year: row.year
+        };
+      }
+      yearMap[row.year].ProducedWater = formatNumber(row.value);
+    });
+
+    countyData.hf_fluid_injected?.forEach(row => {
+      if (!yearMap[row.year]) {
+        yearMap[row.year] = {
+          County: countyName,
+          Year: row.year
+        };
+      }
+      yearMap[row.year].HFFluid = formatNumber(row.value);
+    });
+
+    countyData.saltwater_disposed?.forEach(row => {
+      if (!yearMap[row.year]) {
+        yearMap[row.year] = {
+          County: countyName,
+          Year: row.year
+        };
+      }
+      yearMap[row.year].SaltWaterDisposal = formatNumber(row.value);
+    });
+
+    // Convert yearMap to array and add to allRows
+    Object.values(yearMap).forEach(row => allRows.push(row));
+  });
+
+  // Sort by County then Year
+  allRows.sort((a, b) => {
+    if (a.County !== b.County) return a.County.localeCompare(b.County);
+    return a.Year - b.Year;
+  });
+
+  return allRows;
 }
 
 // Load data on mount if needed
