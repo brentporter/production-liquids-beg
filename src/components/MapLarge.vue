@@ -257,82 +257,8 @@ const colorVisVar = {
   //normalizationField:'County_Area',
   numClasses: 7,
   stops: [
-    /*    {
-          value: 0, color: "#CCCCCC",
-          label: "0"
-        },
-        {
-          value: 12000000, color: "#efdab2",
-          label: "1-12000000"
-        },
-        {
-          value: 36000000, color: "#42ff00",
-          label: "12000001-36000000"
-        },
-        {
-          value: 77000000, color: "#1CD84F",
-          label: "36000001-77000000"
-        },
-        {
-          value: 154000000, color: "#22AFA2",
-          label: "77000001-154000000"
-        },
-        {
-          value: 294000000, color: "#386AA6",
-          label: "154000000-294000000"
-        },
-        {
-          value: 894000000, color: "#2F0E89",
-          label: "294000000-894000000"
-        },*/
   ]
 };
-
-/*
-const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
-  if (!classBreakInfos || classBreakInfos.length === 0) return [];
-//'Gas','Water','Liquid (Oil)',
-  return classBreakInfos.map((classBreak, index) => {
-    const value = classBreak.maxValue;
-    const color = colorArray[index % colorArray.length];
-
-    let label;
-    if (index === 0) {
-      label = "0";
-    } else {
-      const prevMax = classBreakInfos[index - 1].maxValue;
-
-      // Format based on unit type
-      let prevFormatted, currentFormatted, unit;
-      if (unitType === 'BBL' && (mapStore.currentMapLayerView === 'countyProducedWaterTx' || mapStore.currentMapLayerView === 'countyLiquidOilTx')) {
-        prevFormatted = (prevMax / 1000000).toFixed(1);
-        currentFormatted = (value / 1000000).toFixed(1);
-        unit = 'M BBL';
-      } else if (unitType === 'BBL' && mapStore.currentMapLayerView === 'countiesInjectionTx') {
-        prevFormatted = (prevMax / 1000000).toFixed(1);
-        currentFormatted = (value / 1000000).toFixed(1);
-        unit = 'M BBL';
-      } else if (unitType === 'BBL') {
-        prevFormatted = (prevMax / 1000000000).toFixed(1);
-        currentFormatted = (value / 1000000000).toFixed(1);
-        unit = 'B BBL';
-      } else if (unitType === 'GAL') {
-        prevFormatted = (prevMax / 1000000).toFixed(1);
-        currentFormatted = (value / 1000000).toFixed(1);
-        unit = 'M GAL';
-      } else { // MCF
-        prevFormatted = (prevMax / 1000000).toFixed(1);
-        currentFormatted = (value / 1000000).toFixed(1);
-        unit = 'M MCF';
-      }
-
-      label = `${prevFormatted} - ${currentFormatted} ${unit}`;
-    }
-
-    return { value, color, label };
-  });
-};
-*/
 
 const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
   if (!classBreakInfos || classBreakInfos.length === 0) return [];
@@ -538,50 +464,39 @@ async function updateMapLayerExpression(newExpression) {
   }
 }
 
-onMounted(()=>{
-
+onMounted(async () => {
   initialView = mapStore.mapZoom > 0
-      ? { center: mapStore.mapCenter, zoom: mapStore.mapZoom }
-      : { center: [-94.75, 30.75], zoom: 6 }
+      ? {center: mapStore.mapCenter, zoom: mapStore.mapZoom}
+      : {center: [-94.75, 30.75], zoom: 6}
 
   begMap = new Map({
-    // basemap:'dark-gray-vector',             // Create a Map object
     basemap: "streets-night-vector",
-
-    //layers: additionalLayers             // Optionally, add additional layers collection
   });
 
   begView = new MapView({
-    // https://v3.vuejs.org/api/instance-properties.html#el
     container: "mapViewer",
     map: begMap,
     center: initialView.center,
     highlights: [
-      { name: "default", color: "magenta",fillOpacity: 0.3  },
-      { name: "temporary", color: "magenta" },
-      /*
-            { name: "oaks", color: "forestgreen", haloOpacity: 0.8, fillOpacity: 0.3 }
-      */
+      {name: "default", color: "magenta", fillOpacity: 0.3},
+      {name: "temporary", color: "magenta"},
     ],
     popup: {
       dockEnabled: true,
       dockOptions: {
-        // Disables the dock button from the popup
-        //buttonEnabled: false,
-        // Ignore the default sizes that trigger responsive docking
         breakpoint: false
       }
     },
     zoom: initialView.zoom,
   });
 
-  begView.when(() => {
-    // Create home widget after view is ready
-    // Then set up your other initialization
-    setTimeout(() => {
-      isInitializing.value = false
-    }, 500)
-  })
+  // Wait for view to be ready
+  await begView.when();
+
+  // Set up UI after view is ready
+  setTimeout(() => {
+    isInitializing.value = false
+  }, 500);
 
   let homeWidget = new Home({
     view: begView,
@@ -590,31 +505,21 @@ onMounted(()=>{
         longitude: -96.5,
         latitude: 32
       }),
-      zoom:5 // Adjust scale as needed
+      zoom: 5
     })
-  })
-
-  begView.ui.add(homeWidget, "top-left")
+  });
+  begView.ui.add(homeWidget, "top-left");
 
   let legend = new Legend({
     view: begView,
-  })
+  });
   let bkExpand = new Expand({
     view: begView,
     content: legend,
     expanded: true,
     expandTooltip: 'Show Legend'
   });
-
   begView.ui.add(bkExpand, "bottom-left");
-
-  /*customExpand = new Expand({
-    view: begView,
-    expanded: true,
-    expandTooltip: 'Show View Options',
-    content: document.getElementById('testButtonDiv')
-  });
-  begView.ui.add(customExpand, 'top-right');*/
 
   customExpand2 = new Expand({
     view: begView,
@@ -624,158 +529,148 @@ onMounted(()=>{
   });
   begView.ui.add(customExpand2, 'bottom-right');
 
+  // Initialize all feature layers
   countyBoundariesTx = new FeatureLayer({
-    //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Well_Production/FeatureServer/0',
-    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Tx_Well_Production/FeatureServer/0',
-    //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
-    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
     setAutoGeneralize: true,
     outFields: ["*"],
-    opacity:0.75,
+    opacity: 0.75,
     id: "countyBoundariesTx",
-  })
+  });
 
   countyLiquidOilTx = new FeatureLayer({
-    //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Well_Production/FeatureServer/0',
-    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Tx_Well_Production/FeatureServer/0',
-    //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
-    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Liquid_Oil_Production/FeatureServer/0',
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Liquid_Oil_Production/FeatureServer/0',
     setAutoGeneralize: true,
     outFields: ["*"],
-    opacity:0.75,
+    opacity: 0.75,
     id: "countyLiquidOilTx",
-  })
+  });
 
   countyProducedWaterTx = new FeatureLayer({
-    //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Well_Production/FeatureServer/0',
-    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Tx_Well_Production/FeatureServer/0',
-    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Produced_Water_Production/FeatureServer/0',
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Produced_Water_Production/FeatureServer/0',
     setAutoGeneralize: true,
     outFields: ["*"],
-    opacity:0.75,
+    opacity: 0.75,
     id: "countyProducedWaterTx",
-  })
+  });
 
   countiesHFTx = new FeatureLayer({
-    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_HF_Fluid/FeatureServer/0',
-    opacity:0.75,
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_HF_Fluid/FeatureServer/0',
+    opacity: 0.75,
     setAutoGeneralize: true,
     outFields: ["*"],
     id: "countiesHFTx",
-  })
+  });
 
   countiesInjectionTx = new FeatureLayer({
-    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Injection_Info/FeatureServer/0',
-    opacity:0.75,
-    setAutoGeneralize:true,
-    outFields:["*"],
-    id:"countiesInjectionTx",
-  })
-  //https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Basins_Data/FeatureServer
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Injection_Info/FeatureServer/0',
+    opacity: 0.75,
+    setAutoGeneralize: true,
+    outFields: ["*"],
+    id: "countiesInjectionTx",
+  });
+
   basinsInjectionTx = new FeatureLayer({
-    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Basins_Data/FeatureServer/0',
-    opacity:0.75,
-    setAutoGeneralize:true,
-    outFields:["*"],
-    id:"basinsInjectionTx",
-  })
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Basins_Data/FeatureServer/0',
+    opacity: 0.75,
+    setAutoGeneralize: true,
+    outFields: ["*"],
+    id: "basinsInjectionTx",
+  });
 
   layerMap = {
     'countyBoundariesTx': countyBoundariesTx,
-    'countyLiquidOilTx':countyLiquidOilTx,
-    'countyProducedWaterTx':countyProducedWaterTx,
+    'countyLiquidOilTx': countyLiquidOilTx,
+    'countyProducedWaterTx': countyProducedWaterTx,
     'countiesHFTx': countiesHFTx,
     'countiesInjectionTx': countiesInjectionTx,
-    'basinsInjectionTx':basinsInjectionTx
+    'basinsInjectionTx': basinsInjectionTx
   };
-  begMap.add(countyBoundariesTx)
 
-  begView.on("click", (event) => {
-    begView.hitTest(event).then((response) => {
-      const result = response.results[0]
-      if (result?.graphic) {
-        const layer = result.layer  // Define layer here, before using it
-        if (layer.id === 'basinsInjectionTx') {
-          // Basin clicked
-          let tmpBasinClicked = result.graphic.attributes.Feature
-          console.log(tmpBasinClicked);
-          mapStore.setSelectedBasin(tmpBasinClicked)
-          mapStore.setMapFocus('Basin')
+  // Add initial layer based on map focus
+  let addedLayer;
+  if (mapStore.mapFocus === 'Basin') {
+    addedLayer = layerMap['basinsInjectionTx'];
+    begMap.add(addedLayer);
+  } else if (mapStore.mapFocus === 'County') {
+    addedLayer = layerMap['countyBoundariesTx'];
+    begMap.add(addedLayer);
+  } else {
+    addedLayer = countyBoundariesTx;
+    begMap.add(addedLayer);
+  }
 
-          selectedGraphic = result.graphic
+  // Wait for the layer to be ready, then restore highlight from Pinia
+  if (addedLayer) {
+    const layerView = await begView.whenLayerView(addedLayer);
+    await restoreHighlightFromPinia(addedLayer, layerView);
+  }
 
-          begView.whenLayerView(layer).then((layerView) => {
-            if (highlightHandle) {
-              highlights.forEach((h) => h.remove())
-            }
+  // Set up click handler
+  begView.on("click", async (event) => {
+    const response = await begView.hitTest(event);
+    const result = response.results[0];
 
-            highlightHandle = layerView.highlight(selectedGraphic, "default")
-            highlights.push(highlightHandle)
-            begView.goTo(selectedGraphic.geometry.extent.expand(3.5))
-          })
-        } else {
-          let tmpCountyClicked = result.graphic.attributes.CNTY_NM
-          mapStore.setSelectedCounty(tmpCountyClicked)
-          mapStore.setMapFocus('County')
+    if (result?.graphic) {
+      const layer = result.layer;
+      const layerView = await begView.whenLayerView(layer);
 
-          selectedGraphic = result.graphic
-
-          const layer = result.layer
-          begView.whenLayerView(layer).then((layerView) => {
-            if (highlightHandle) {
-              highlights.forEach((h) => h.remove())
-            }
-
-            highlightHandle = layerView.highlight(selectedGraphic, "default")
-            highlights.push(highlightHandle)
-            begView.goTo(selectedGraphic.geometry.extent.expand(4.5))
-          })
-        }
+      if (layer.id === 'basinsInjectionTx') {
+        mapStore.setSelectedBasin(result.graphic.attributes.Feature);
+        mapStore.setMapFocus('Basin');
+        await highlightFeature(result.graphic, layerView, 3.5);
+      } else {
+        mapStore.setSelectedCounty(result.graphic.attributes.CNTY_NM);
+        mapStore.setMapFocus('County');
+        await highlightFeature(result.graphic, layerView, 4.5);
       }
-    })
-  })
-  /*  begView.on("click", (event) => {
-      begView.hitTest(event).then((response) => {
-        const result = response.results[0]
-        if (result?.graphic) {
-          let tmpCountyClicked = result.graphic.attributes.CNTY_NM
-          mapStore.setSelectedCounty(tmpCountyClicked)
-          mapStore.setMapFocus('County')
+    }
+  });
+});
 
-          // Get the layerView from the layer
-          const layer = result.layer
-          //highlight = layerView.highlight(result.features, {name: "temporary"});
-          //hightlights.push(highlight);
-          begView.whenLayerView(layer).then((layerView) => {
-            if (highlightHandle) {
-              highlights.forEach((h) =>{
-                h.remove();
-              });
-            }
+// Move this function OUTSIDE onMounted so it can be reused
+async function restoreHighlightFromPinia(layer, layerView) {
+  // Clear existing highlights
+  highlights.forEach(h => h.remove());
+  highlights = [];
+  highlightHandle = null;
 
-            highlightHandle = layerView.highlight(result.graphic,"default")
-            highlights.push(highlightHandle);
-            //begView.goTo(result.graphic.geometry.extent.extent);
-            const ext = result.graphic.geometry.extent
-            const expanded = ext.expand(2.5)
-            begView.goTo(expanded);
-          })
-        }
-      })
-    })*/
-  /*begView.on("click", (event) => {
-    begView.hitTest(event).then((response) => {
-      const countyFeature = response.results[0]?.graphic
-      if (countyFeature) {
-        console.log("Available attributes:", countyFeature.attributes)
-        let tmpCountyClicked = countyFeature.attributes.CNTY_NM.split(' County')[0]
-        mapStore.setSelectedCounty(tmpCountyClicked)
-        mapStore.setMapFocus('County')
-        }
-    })
-  })*/
+  if (mapStore.selectedBasin && mapStore.mapFocus === 'Basin') {
+    const query = layer.createQuery();
+    query.where = `Feature = '${mapStore.selectedBasin}'`;
+    const results = await layer.queryFeatures(query);
+    if (results.features.length > 0) {
+      selectedGraphic = results.features[0];
+      highlightHandle = layerView.highlight(selectedGraphic);
+      highlights.push(highlightHandle);
+      await begView.goTo(selectedGraphic.geometry);
+    }
+  } else if (mapStore.selectedCounty && mapStore.mapFocus === 'County') {
+    const query = layer.createQuery();
+    query.where = `CNTY_NM = '${mapStore.selectedCounty}'`;
+    const results = await layer.queryFeatures(query);
+    if (results.features.length > 0) {
+      selectedGraphic = results.features[0];
+      highlightHandle = layerView.highlight(selectedGraphic);
+      highlights.push(highlightHandle);
+      await begView.goTo(selectedGraphic.geometry);
+    }
+  }
+}
 
-})
+async function highlightFeature(graphic, layerView, zoomFactor = 4.5) {
+  // Clear existing highlights
+  highlights.forEach(h => h.remove());
+  highlights = [];
+
+  selectedGraphic = graphic;
+  highlightHandle = layerView.highlight(graphic);
+  highlights.push(highlightHandle);
+
+  if (graphic.geometry?.extent) {
+    await begView.goTo(graphic.geometry.extent.expand(zoomFactor));
+  }
+}
 </script>
 
 <style scoped>
