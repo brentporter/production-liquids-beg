@@ -643,7 +643,7 @@ async function restoreHighlightFromPinia(layer, layerView) {
       selectedGraphic = results.features[0];
       highlightHandle = layerView.highlight(selectedGraphic);
       highlights.push(highlightHandle);
-      await begView.goTo(selectedGraphic.geometry);
+      await begView.goTo(selectedGraphic.geometry.extent.expand(3.5));
     }
   } else if (mapStore.selectedCounty && mapStore.mapFocus === 'County') {
     const query = layer.createQuery();
@@ -653,7 +653,7 @@ async function restoreHighlightFromPinia(layer, layerView) {
       selectedGraphic = results.features[0];
       highlightHandle = layerView.highlight(selectedGraphic);
       highlights.push(highlightHandle);
-      await begView.goTo(selectedGraphic.geometry);
+      await begView.goTo(selectedGraphic.geometry.extent.expand(4.5));
     }
   }
 }
