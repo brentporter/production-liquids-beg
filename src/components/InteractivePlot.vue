@@ -114,7 +114,7 @@ const chartOptions = ref({
       offsetY: 0
     },
     title: {
-      text: '(mcf)'
+      text: 'BCF'
     },
     labels: {
       formatter: (val) => numberWithCommas(val)
@@ -143,13 +143,13 @@ const chartOptions = ref({
 // Computed properties for current display
 const currentYAxisTitle = computed(() => {
   if (mapStore.dataMode === 'production') {
-    if (mapStore.selectedProduction === 'Gas') return '(mcf)'
-    if (mapStore.selectedProduction === 'Liquid Oil') return '(BBL)'
-    if (mapStore.selectedProduction === 'Produced Water') return '(BBL)'
+    if (mapStore.selectedProduction === 'Gas') return '(BCF)'
+    if (mapStore.selectedProduction === 'Liquid Oil') return '(million BBL)'
+    if (mapStore.selectedProduction === 'Produced Water') return '(million BBL)'
   } else if (mapStore.selectedInjection === 'HF Fluid') {
     return '(gal)'
   } else {
-    return '(BBL)'
+    return '(million BBL)'
   }
 })
 
@@ -466,47 +466,9 @@ async function loadCountyData() {
           labels: {
             formatter: (val) => numberWithCommas(val)
           },
-          /*min: undefined,
-          max: undefined,
-          tickAmount: undefined,
-          forceNiceScale: true*/
         }
       }
-      //let newOptions  = [...newOptions.value.yaxis]
-      /*newOptions = {
-        ...newOptions,
-        min: undefined,
-        max: undefined,
-        tickAmount: undefined,
-        forceNiceScale: true
-      }*/
 
-      //console.log(countyName + " is the county Name");
-      // Sutton County fix - override with static values
-      /*if (countyName === 'SUTTON' && mapStore.selectedProduction === 'Gas') {
-        newOptions.yaxis.min = 0
-        newOptions.yaxis.max = 60000
-        newOptions.yaxis.tickAmount = 6
-        newOptions.yaxis.forceNiceScale = false
-      }*/
-
-
-      //await nextTick()
-
-// Wait for chart to actually render before allowing next update
-      /*    if (!chartRendered.value) {
-      await new Promise(resolve => {
-        const checkRendered = setInterval(() => {
-          if (chartRendered.value) {
-            clearInterval(checkRendered)
-            resolve()
-          }
-        }, 50)
-      })
-    }*/
-
-      //setTimeout(() => {
-      //chartRendered.value = false;
       if (charted.value) {
         try {
           charted.value.updateOptions(newOptions)
