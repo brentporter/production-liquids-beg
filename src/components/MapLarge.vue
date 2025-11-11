@@ -286,17 +286,17 @@ const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
       } else if (unitType === 'Million_BBL') {
         prevFormatted = prevMax.toFixed(1);
         currentFormatted = value.toFixed(1);
-        unit = 'M BBL';
+        unit = 'Million BBL';
       }
       // County-specific units
       else if (unitType === 'BBL' && (mapStore.currentMapLayerView === 'countyProducedWaterTx' || mapStore.currentMapLayerView === 'countyLiquidOilTx')) {
         prevFormatted = (prevMax / 1000000).toFixed(1);
         currentFormatted = (value / 1000000).toFixed(1);
-        unit = 'M BBL';
+        unit = 'Million BBL';
       } else if (unitType === 'BBL' && mapStore.currentMapLayerView === 'countiesInjectionTx') {
         prevFormatted = (prevMax / 1000000).toFixed(1);
         currentFormatted = (value / 1000000).toFixed(1);
-        unit = 'M BBL';
+        unit = 'Million BBL';
       } else if (unitType === 'BBL') {
         prevFormatted = (prevMax / 1000000000).toFixed(1);
         currentFormatted = (value / 1000000000).toFixed(1);
@@ -308,7 +308,7 @@ const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
       } else { // MCF
         prevFormatted = (prevMax / 1000000).toFixed(1);
         currentFormatted = (value / 1000000).toFixed(1);
-        unit = 'M MCF';
+        unit = 'BCF';
       }
 
       label = `${prevFormatted} - ${currentFormatted} ${unit}`;
