@@ -19,22 +19,25 @@ export const useMapStore = defineStore('map', () => {
     const selectedBasin = ref(null)
 
     const typeMapping = {
-        'Liquid Oil': 'Liquid_Produced_BBL',
-        'Gas': 'Gas_Produced_MCF',
-        'Produced Water': 'Water_Produced_BBL',
-        'HF Fluid': selectedProductionYear.value,
-        'Salt Water Disposal': selectedProductionYear.value,
+        'Liquid Oil': 'Liquid_Million_BBL',
+        'Gas': 'Gas_BCF',
+        'Produced Water': 'ProducedWater_Million_BBL',
+        'HF Fluid': 'HF_Water_Billion_GAL_' + selectedProductionYear.value,
+        'Salt Water Disposal': 'SW_Disposal_Million_BBL_'+selectedProductionYear.value,
     }
 
     // Computed esri expression
     const esriExpression = computed(() => {
         if (currentMapLayerView.value === 'countyBoundariesTx') {
             const fieldName = `${typeMapping[selectedProduction.value]}_${selectedProductionYear.value}`
+            console.log(fieldName);
             return fieldName
         } else if (currentMapLayerView.value === 'countiesHFTx') {
-            return `HF_${selectedProductionYear.value}`
+            return 'HF_Water_Billion_GAL_' + selectedProductionYear.value
+            //return `HF_${selectedProductionYear.value}`
         } else if (currentMapLayerView.value === 'countiesInjectionTx') {
-            return `F${selectedProductionYear.value}`
+            return 'SWDisposal_Million_BBL_'+selectedProductionYear.value
+            //return `F${selectedProductionYear.value}`
         } else if (currentMapLayerView.value === 'countyLiquidOilTx') {
             const fieldName = `${typeMapping[selectedProduction.value]}_${selectedProductionYear.value}`
             return fieldName
@@ -56,7 +59,7 @@ export const useMapStore = defineStore('map', () => {
                     return `HF_Water_Billion_Gal_${selectedProductionYear.value}`
                 } else if (selectedInjection.value === 'Salt Water Disposal') {
                     console.log(selectedInjection.value)
-                    return `SWaterDisp_Million_BBL_${selectedProductionYear.value}`
+                    return `SW_Disposal_Million_BBL_${selectedProductionYear.value}`
                 }
             }
         }

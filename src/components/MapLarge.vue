@@ -253,7 +253,7 @@ const colorVisVar = {
   type: "color",
   classificationMethod: "natural-breaks",
   //valueExpression: esriExpression.value,
-  field:'Gas_Produced_BBL_2010',
+  field:'Gas_BCF_2010',
   //normalizationField:'County_Area',
   numClasses: 7,
   stops: [
@@ -275,7 +275,7 @@ const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
       let prevFormatted, currentFormatted, unit;
 
       // Basin-specific units
-      if (unitType === 'BCF') {
+      if (unitType === 'BCF' || unitType === 'Gas_BCF') {
         prevFormatted = prevMax.toFixed(1);
         currentFormatted = value.toFixed(1);
         unit = 'BCF';
@@ -292,31 +292,46 @@ const transformClassBreaksToStops = (classBreakInfos, colorArray, unitType) => {
       else if (unitType === 'BBL' && (mapStore.currentMapLayerView === 'countyProducedWaterTx' || mapStore.currentMapLayerView === 'countyLiquidOilTx')) {
         prevFormatted = (prevMax / 1000000).toFixed(1);
         currentFormatted = (value / 1000000).toFixed(1);
-        unit = 'Million BBL';
+        //unit = 'Million BBL';
       } else if (unitType === 'BBL' && mapStore.currentMapLayerView === 'countiesInjectionTx') {
         prevFormatted = (prevMax / 1000000).toFixed(1);
         currentFormatted = (value / 1000000).toFixed(1);
-        unit = 'Million BBL';
+        //unit = 'Million BBL';
       } else if (unitType === 'BBL') {
         prevFormatted = (prevMax / 1000000000).toFixed(1);
         currentFormatted = (value / 1000000000).toFixed(1);
-        unit = 'B BBL';
+        //unit = 'B BBL';
       } else if (unitType === 'GAL') {
         prevFormatted = (prevMax / 1000000).toFixed(1);
         currentFormatted = (value / 1000000).toFixed(1);
-        unit = 'M GAL';
+        //unit = 'M GAL';
       } else { // MCF
         prevFormatted = (prevMax / 1000000).toFixed(1);
         currentFormatted = (value / 1000000).toFixed(1);
-        unit = 'BCF';
+        //unit = 'BCF';
       }
 
-      label = `${prevFormatted} - ${currentFormatted} ${unit}`;
+      label = `${prevFormatted} - ${currentFormatted} ${unitType}`;
     }
 
     return { value, color, label };
   });
 };
+
+function formatLegendTitle(esriExpression) {
+  if (!esriExpression) return '';
+
+  // Split by underscore: "Gas_BCF_2021" -> ["Gas", "BCF", "2021"]
+  const parts = esriExpression.split('_');
+
+  if (parts.length < 3) return esriExpression; // fallback if format is unexpected
+
+  const year = parts[parts.length - 1]; // Last part is year
+  const units = parts[parts.length - 2]; // Second to last is units
+  const choice = parts.slice(0, -2).join(' '); // Everything before units, rejoin with spaces
+
+  return `${choice} (${units}) - ${year}`;
+}
 
 async function updateMapLayerExpression(newExpression) {
   let colorArray;
@@ -332,7 +347,7 @@ async function updateMapLayerExpression(newExpression) {
       "#FB6A4A","#EF3B2C",
       "#CB181D", "#99000D"
     ]
-    unitType = mapStore.selectedProduction === 'Gas' ? 'mcf' : 'bbl';
+    unitType = 'Gas_BCF';
   } else if (mapStore.currentMapLayerView === 'countyLiquidOilTx') {
     let colorArrayGasOld = ['#CCCCCC',
       '#DAD7A4', '#C6BC8F',
@@ -344,7 +359,7 @@ async function updateMapLayerExpression(newExpression) {
       "#238B45","#005824",
 
     ]
-    unitType = 'BBL';
+    unitType = 'Million_BBL';
   } else if (mapStore.currentMapLayerView === 'countyProducedWaterTx') {
     let colorArrayOld = ['#CCCCCC',
       '#CCEBC5', '#A8DDB5',
@@ -354,7 +369,7 @@ async function updateMapLayerExpression(newExpression) {
       '#DAD7A4', '#C6BC8F',
       '#B3A37A', '#9E8A65',
       '#8A7151', '#785A3E'];
-    unitType = 'BBL';
+    unitType = 'Million_BBL';
   } else if (mapStore.currentMapLayerView === 'countiesHFTx') {
     let colorArrayOld = ['#CCCCCC',
       '#FFEBAF', '#C5FF00',
@@ -364,19 +379,19 @@ async function updateMapLayerExpression(newExpression) {
       '#CCEBC5', '#A8DDB5',
       '#7BCCC4', '#4EB3D3',
       '#2B8CBE', '#08589E'];
-    unitType = 'GAL';
+    unitType = 'Billion_GAL';
   } else if (mapStore.currentMapLayerView === 'countiesInjectionTx') {
     colorArray = ["#CCCCCC",
       "#FDD0A2", "#FDAE6B",
       "#FD8D3C", "#F16913",
       "#D94801", "#8C2D04"];
-    unitType = 'BBL';
+    unitType = 'Million_BBL';
   } else if (mapStore.currentMapLayerView === 'basinsInjectionTx') {
     // Determine colors based on data type
     if (mapStore.dataMode === 'production') {
       if (mapStore.selectedProduction === 'Gas') {
         colorArray = ["#CCCCCC", "#FCBBA1", "#FC9272", "#FB6A4A","#EF3B2C", "#CB181D", "#99000D"]
-        unitType = 'BCF'
+        unitType = 'Gas_BCF'
       } else if (mapStore.selectedProduction === 'Liquid Oil') {
         colorArray = ['#CCCCCC', "#CCECD1","#99D8C9", "#66C2A4","#41AE76", "#238B45","#005824"]
         unitType = 'Million_BBL'
@@ -438,6 +453,9 @@ async function updateMapLayerExpression(newExpression) {
 
       const rendererNew = new ClassBreaksRenderer({
         field: newExpression,
+        legendOptions: {
+          title: formatLegendTitle(newExpression)  // "Gas (BCF) - 2021"
+        },
         classBreakInfos: classBreaks.map((classBreak, index) => ({
           minValue: classBreak.minValue,
           maxValue: classBreak.maxValue,
@@ -531,7 +549,8 @@ onMounted(async () => {
 
   // Initialize all feature layers
   countyBoundariesTx = new FeatureLayer({
-    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Production_Data_2025/FeatureServer/0',
+    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Gas_Production/FeatureServer/0',
     setAutoGeneralize: true,
     outFields: ["*"],
     opacity: 0.75,
@@ -539,7 +558,9 @@ onMounted(async () => {
   });
 
   countyLiquidOilTx = new FeatureLayer({
-    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Liquid_Oil_Production/FeatureServer/0',
+    url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Production_Data_2025/FeatureServer/0',
+    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Liquid_Oil_Production/FeatureServer/0',
+    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Liquid_Oil_Production/FeatureServer/0',
     setAutoGeneralize: true,
     outFields: ["*"],
     opacity: 0.75,
@@ -547,7 +568,9 @@ onMounted(async () => {
   });
 
   countyProducedWaterTx = new FeatureLayer({
-    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Produced_Water_Production/FeatureServer/0',
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Production_Data_2025/FeatureServer/0',
+
+    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_Produced_Water_Production/FeatureServer/0',
     setAutoGeneralize: true,
     outFields: ["*"],
     opacity: 0.75,
@@ -555,7 +578,8 @@ onMounted(async () => {
   });
 
   countiesHFTx = new FeatureLayer({
-    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_HF_Fluid/FeatureServer/0',
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Production_Data_2025/FeatureServer/0',
+    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_HF_Fluid/FeatureServer/0',
     opacity: 0.75,
     setAutoGeneralize: true,
     outFields: ["*"],
@@ -563,7 +587,8 @@ onMounted(async () => {
   });
 
   countiesInjectionTx = new FeatureLayer({
-    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Injection_Info/FeatureServer/0',
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Production_Data_2025/FeatureServer/0',
+    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Injection_Info/FeatureServer/0',
     opacity: 0.75,
     setAutoGeneralize: true,
     outFields: ["*"],
@@ -571,7 +596,10 @@ onMounted(async () => {
   });
 
   basinsInjectionTx = new FeatureLayer({
-    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Basins_Data/FeatureServer/0',
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Production_Data_2025/FeatureServer/0',
+
+    //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Production_Data/FeatureServer/0',
+    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Basins_Data/FeatureServer/0',
     opacity: 0.75,
     setAutoGeneralize: true,
     outFields: ["*"],
@@ -600,8 +628,13 @@ onMounted(async () => {
     begMap.add(addedLayer);
   }
 
-  // Wait for the layer to be ready, then restore highlight from Pinia
   if (addedLayer) {
+    // Apply initial renderer with legend title
+    if (mapStore.esriExpression) {
+      await updateMapLayerExpression(mapStore.esriExpression);
+    }
+
+    // Then restore highlight from Pinia
     const layerView = await begView.whenLayerView(addedLayer);
     await restoreHighlightFromPinia(addedLayer, layerView);
   }
