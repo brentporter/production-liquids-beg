@@ -640,12 +640,47 @@ onMounted(async () => {
   }
 
   // Set up click handler
+/*  begView.on("click", async (event) => {
+    const response = await begView.hitTest(event);
+    const result = response.results[0];
+
+    if (result?.graphic) {
+      const layer = result.layer;
+      const layerView = await begView.whenLayerView(layer);
+
+      if (layer.id === 'basinsInjectionTx') {
+        mapStore.setSelectedBasin(result.graphic.attributes.Feature);
+        mapStore.setMapFocus('Basin');
+        await highlightFeature(result.graphic, layerView, 3.5);
+      } else {
+        mapStore.setSelectedCounty(result.graphic.attributes.CNTY_NM);
+        mapStore.setMapFocus('County');
+        await highlightFeature(result.graphic, layerView, 4.5);
+      }
+    }
+  });*/
   begView.on("click", async (event) => {
     const response = await begView.hitTest(event);
     const result = response.results[0];
 
     if (result?.graphic) {
       const layer = result.layer;
+
+      // Check if this is one of your feature layers
+      const validLayerIds = [
+        'basinsInjectionTx',
+        'countyBoundariesTx',
+        'countyLiquidOilTx',
+        'countyProducedWaterTx',
+        'countiesHFTx',
+        'countiesInjectionTx'
+      ];
+
+      if (!validLayerIds.includes(layer.id)) {
+        console.log('Clicked on non-feature layer:', layer.id);
+        return; // Ignore clicks on basemap or other layers
+      }
+
       const layerView = await begView.whenLayerView(layer);
 
       if (layer.id === 'basinsInjectionTx') {
