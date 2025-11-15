@@ -112,27 +112,27 @@ export const useDataStore = defineStore('data', () => {
             // Add data for each year
             countyData.value[county].gas_produced.push({
                 year: row.Year,
-                value: row.Gas_Produced_BCF * 1000 // Convert BCF to MCF
+                value: row.Gas_Produced_BCF // Convert BCF to MCF
             })
 
             countyData.value[county].liquid_produced.push({
                 year: row.Year,
-                value: row.Liquid_Produced_Million_BBL * 1000000 // Convert to BBL
+                value: row.Liquid_Produced_Million_BBL // Convert to BBL
             })
 
             countyData.value[county].water_produced.push({
                 year: row.Year,
-                value: row.Water_Produced_Million_BBL * 1000000 // Convert to BBL
+                value: row.Water_Produced_Million_BBL // Convert to BBL
             })
 
             countyData.value[county].hf_fluid.push({
                 year: row.Year,
-                value: row.HF_Water_Billion_GAL * 1000000000 // Convert to GAL
+                value: row.HF_Water_Billion_GAL // Convert to GAL
             })
 
             countyData.value[county].injection.push({
                 year: row.Year,
-                value: row.Salt_Water_Disposal_Million_BBL * 1000000 // Convert to BBL
+                value: row.Salt_Water_Disposal_Million_BBL // Convert to BBL
             })
         })
 
@@ -144,11 +144,11 @@ export const useDataStore = defineStore('data', () => {
     function processStatewideData(stateData) {
         statewideData.value = stateData.map(row => ({
             Year: row.Year,
-            Gas_Produced_MCF: row.Gas_Produced_BCF * 1000,
-            Liquid_Produced_BBL: row.Liquid_Produced_Million_BBL * 1000000,
-            Water_Produced_BBL: row.Water_Produced_Million_BBL * 1000000,
-            HF_Water_GAL: row.HF_Water_Billion_GAL * 1000000000,
-            Salt_Water_Disposal_BBL: row.Salt_Water_Disposal_Million_BBL * 1000000
+            Gas_Produced_MCF: row.Gas_Produced_BCF,
+            Liquid_Produced_BBL: row.Liquid_Produced_Million_BBL,
+            Water_Produced_BBL: row.Water_Produced_Million_BBL,
+            HF_Water_GAL: row.HF_Water_Billion_GAL,
+            Salt_Water_Disposal_BBL: row.Salt_Water_Disposal_Million_BBL,
         })).sort((a, b) => a.Year - b.Year)
     }
 
@@ -173,27 +173,27 @@ export const useDataStore = defineStore('data', () => {
             // Add data for each year
             basinData.value[basin].gas_produced.push({
                 year: row.Year,
-                value: row.Gas_Produced_BCF * 1000 // Convert BCF to MCF
+                value: row.Gas_Produced_BCF // Convert BCF to MCF
             })
 
             basinData.value[basin].liquid_produced.push({
                 year: row.Year,
-                value: row.Liquid_Produced_Million_BBL * 1000000 // Convert to BBL
+                value: row.Liquid_Produced_Million_BBL // Convert to BBL
             })
 
             basinData.value[basin].water_produced.push({
                 year: row.Year,
-                value: row.Water_Produced_Million_BBL * 1000000 // Convert to BBL
+                value: row.Water_Produced_Million_BBL // Convert to BBL
             })
 
             basinData.value[basin].hf_fluid.push({
                 year: row.Year,
-                value: row.HF_Water_Billion_GAL * 1000000000 // Convert to GAL
+                value: row.HF_Water_Billion_GAL // Convert to GAL
             })
 
             basinData.value[basin].injection.push({
                 year: row.Year,
-                value: row.Salt_Water_Disposal_Million_BBL * 1000000 // Convert to BBL
+                value: row.Salt_Water_Disposal_Million_BBL // Convert to BBL
             })
         })
 

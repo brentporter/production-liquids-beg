@@ -89,7 +89,42 @@
         </label>
       </div>
     </div>
-    <v-autocomplete
+    <template v-if="router.currentRoute.value.path === '/pwd/table'">
+      <v-autocomplete
+          class="ml-4"
+          max-width="200"
+          min-width="200"
+          density="compact"
+          :hint="autocompleteHint"
+          chips
+          :label="autocompleteLabel"
+          :items="autocompleteItems"
+          v-model="autocompleteModel"
+      >
+        <template v-slot:chip="{ props, item }">
+          <v-chip color="orange-darken-4" variant="flat">
+          </v-chip>
+        </template>
+      </v-autocomplete>
+
+      <v-btn
+          class="ml-1 pl-1"
+          elevation="3"
+          color="orange-darken-4"
+          append-icon="mdi-account-circle"
+          prepend-icon="mdi-erase"
+          @click="clearChoices"
+      >
+        <template v-slot:prepend>
+          <v-icon color="success"></v-icon>
+        </template>
+        Clear Choices
+        <template v-slot:append>
+          <v-icon color="warning"></v-icon>
+        </template>
+      </v-btn>
+    </template>
+<!--    <v-autocomplete
         class="ml-4"
         max-width="200"
         min-width="200"
@@ -120,7 +155,7 @@
       <template v-slot:append>
         <v-icon color="warning"></v-icon>
       </template>
-    </v-btn>
+    </v-btn>-->
 <!--    <div class="control-section">
       <v-btn class="refresh-button">
         ⟳ Refresh Data

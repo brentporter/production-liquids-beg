@@ -596,10 +596,10 @@ onMounted(async () => {
   });
 
   basinsInjectionTx = new FeatureLayer({
-    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Production_Data_2025/FeatureServer/0',
+    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Production_Data_2025/FeatureServer/0',
 
     //url:'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Texas_County_Production_Data/FeatureServer/0',
-    //url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Basins_Data/FeatureServer/0',
+    url: 'https://services1.arcgis.com/7DRakJXKPEhwv0fM/arcgis/rest/services/Basins_Data/FeatureServer/0',
     opacity: 0.75,
     setAutoGeneralize: true,
     outFields: ["*"],
