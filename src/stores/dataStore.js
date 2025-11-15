@@ -21,6 +21,7 @@ export const useDataStore = defineStore('data', () => {
     const rawBasinData = ref([])
     const countyNames = ref([])
     const basinNames = ref([])
+    const basinDataOtherStates = ref({})
 
     // Computed
     const hasData = computed(() => isLoaded.value && !error.value)
@@ -152,7 +153,7 @@ export const useDataStore = defineStore('data', () => {
         })).sort((a, b) => a.Year - b.Year)
     }
 
-    function processBasinData() {
+/*    function processBasinData() {
         basinData.value = {}
         const basins = new Set()
 
@@ -200,6 +201,86 @@ export const useDataStore = defineStore('data', () => {
         // Convert Set to sorted array
         basinNames.value = Array.from(basins).sort()
         console.log('Basin names:', basinNames.value)
+    }*/
+    function processBasinData() {
+        basinData.value = {}
+        basinDataOtherStates.value = {} // New: store non-TX data separately
+        const basins = new Set()
+        const otherStatesBasins = new Set()
+
+        rawBasinData.value.forEach(row => {
+            const basin = row.Basin
+            const state = row.State
+
+            // Only process Texas data for main basinData
+            if (state === 'TX') {
+                basins.add(basin)
+
+                if (!basinData.value[basin]) {
+                    basinData.value[basin] = {
+                        gas_produced: [],
+                        liquid_produced: [],
+                        water_produced: [],
+                        hf_fluid: [],
+                        injection: []
+                    }
+                }
+
+                // Add data for each year
+                basinData.value[basin].gas_produced.push({
+                    year: row.Year,
+                    value: row.Gas_Produced_BCF
+                })
+
+                basinData.value[basin].liquid_produced.push({
+                    year: row.Year,
+                    value: row.Liquid_Produced_Million_BBL
+                })
+
+                basinData.value[basin].water_produced.push({
+                    year: row.Year,
+                    value: row.Water_Produced_Million_BBL
+                })
+
+                basinData.value[basin].hf_fluid.push({
+                    year: row.Year,
+                    value: row.HF_Water_Billion_GAL
+                })
+
+                basinData.value[basin].injection.push({
+                    year: row.Year,
+                    value: row.Salt_Water_Disposal_Million_BBL
+                })
+            } else {
+                // Store non-TX data separately (optional, for future use)
+                otherStatesBasins.add(`${basin} (${state})`)
+
+                if (!basinDataOtherStates.value[basin]) {
+                    basinDataOtherStates.value[basin] = {}
+                }
+                if (!basinDataOtherStates.value[basin][state]) {
+                    basinDataOtherStates.value[basin][state] = {
+                        gas_produced: [],
+                        liquid_produced: [],
+                        water_produced: [],
+                        hf_fluid: [],
+                        injection: []
+                    }
+                }
+
+                // Store the non-TX data
+                basinDataOtherStates.value[basin][state].gas_produced.push({
+                    year: row.Year,
+                    value: row.Gas_Produced_BCF
+                })
+                // ... (add other fields similarly if needed)
+            }
+        })
+
+        // Convert Set to sorted array (only TX basins)
+        basinNames.value = Array.from(basins).sort()
+        console.log('Texas Basin names:', basinNames.value)
+        console.log('Other states basins:', Array.from(otherStatesBasins).sort())
     }
 
     function getCountyData(county, dataType = 'production') {
