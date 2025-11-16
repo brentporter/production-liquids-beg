@@ -330,7 +330,8 @@ function formatLegendTitle(esriExpression) {
   const units = parts[parts.length - 2]; // Second to last is units
   const choice = parts.slice(0, -2).join(' '); // Everything before units, rejoin with spaces
 
-  return `${choice} (${units}) - ${year}`;
+  //return `${choice} (${units}) - ${year}`;
+  return `${year}`;
 }
 
 async function updateMapLayerExpression(newExpression) {
