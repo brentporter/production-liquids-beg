@@ -147,7 +147,7 @@ const currentYAxisTitle = computed(() => {
     if (mapStore.selectedProduction === 'Liquid Oil') return '(million BBL)'
     if (mapStore.selectedProduction === 'Produced Water') return '(million BBL)'
   } else if (mapStore.selectedInjection === 'HF Fluid') {
-    return '(gal)'
+    return '(billion Gal)'
   } else {
     return '(million BBL)'
   }
@@ -155,8 +155,16 @@ const currentYAxisTitle = computed(() => {
 
 // Helper to extract values from data
 function extractValues(data, key) {
-  return data.map(row => parseInt(row[key]) || 0)
+  return data.map(row => {
+    const value = parseFloat(row[key]) || 0;
+    // If value is between 0 and 1, round to 2 decimal places
+    // Otherwise, round to nearest integer
+    return value > 0 && value < 1 ? parseFloat(value.toFixed(2)) : Math.round(value);
+  });
 }
+/*function extractValues(data, key) {
+  return data.map(row => parseInt(row[key]) || 0)
+}*/
 
 // Main data loading function
 async function loadChartData() {
