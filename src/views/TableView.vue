@@ -86,11 +86,11 @@ const headers = computed(() => {
 
   // Add all production and injection columns
   baseHeaders.push(
-      { title: 'Gas (MCF)', key: 'Gas', align: 'end' },
-      { title: 'Liquid Oil (BBL)', key: 'LiquidOil', align: 'end' },
-      { title: 'Produced Water (BBL)', key: 'ProducedWater', align: 'end' },
-      { title: 'HF Fluid (GAL)', key: 'HFFluid', align: 'end' },
-      { title: 'Salt Water Disposal (BBL)', key: 'SaltWaterDisposal', align: 'end' }
+      { title: 'Gas (BCF)', key: 'Gas', align: 'end' },
+      { title: 'Liquid Oil (million BBL)', key: 'LiquidOil', align: 'end' },
+      { title: 'Produced Water (million BBL)', key: 'ProducedWater', align: 'end' },
+      { title: 'HF Fluid (billion GAL)', key: 'HFFluid', align: 'end' },
+      { title: 'Salt Water Disposal (million BBL)', key: 'SaltWaterDisposal', align: 'end' }
   )
 
   return baseHeaders
